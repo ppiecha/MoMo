@@ -1,0 +1,119 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$ref": "#/definitions/Welcome8",
+    "definitions": {
+        "Welcome8": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "BPM": {
+                    "type": "integer"
+                },
+                "soundFontPath": {
+                    "type": "string"
+                },
+                "tracks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Track"
+                    }
+                },
+                "author": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "null"
+                },
+                "PPQ": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "BPM",
+                "PPQ",
+                "author",
+                "comment",
+                "description",
+                "name",
+                "soundFontPath",
+                "tracks"
+            ],
+            "title": "Welcome8"
+        },
+        "Track": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "integer"
+                },
+                "instrument": {
+                    "type": "integer"
+                },
+                "versions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Version"
+                    }
+                },
+                "active": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "active",
+                "channel",
+                "instrument",
+                "name",
+                "versions"
+            ],
+            "title": "Track"
+        },
+        "Version": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "notesOn": {
+                    "type": "string"
+                },
+                "timing": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "integer"
+                },
+                "duration": {
+                    "type": "string"
+                },
+                "velocity": {
+                    "type": "null"
+                },
+                "active": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "active",
+                "duration",
+                "name",
+                "notesOn",
+                "start",
+                "timing",
+                "velocity"
+            ],
+            "title": "Version"
+        }
+    }
+}

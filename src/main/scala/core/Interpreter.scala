@@ -4,7 +4,7 @@ import scala.util.Try
 
 object Interpreter {
 
-  val toolbox = locally {
+  private val toolbox = locally {
     import scala.tools.reflect.ToolBox
     reflect.runtime.currentMirror.mkToolBox()
   }

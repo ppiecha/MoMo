@@ -2,6 +2,8 @@ package core
 
 object Sequence extends App {
 
+  // TODO add ser (start stop step) supporting doubles
+
   /** Creates iterator which repeats given sequence in a loop
    *
    * @param sequence the values to be repeated

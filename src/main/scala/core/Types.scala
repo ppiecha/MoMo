@@ -1,7 +1,7 @@
 package core
 
 object Types extends App {
-  type InterpreterTree = Interpreter.toolbox.u.Tree
+  type InterpreterTree = scala.reflect.runtime.universe.Tree
 
   trait Constrained[A] {
     def constraint(value: A): Boolean
