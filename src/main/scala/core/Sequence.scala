@@ -2,7 +2,7 @@ package core
 
 object Sequence extends App {
 
-  // TODO add ser (start stop step) supporting doubles
+  // TODO add ser (start stop step) supporting doubles and support for chords
 
   /** Creates iterator which repeats given sequence in a loop
    *

@@ -1,14 +1,17 @@
 package model
 
+//import com.fasterxml.jackson.annotation.JsonProperty
 import core.Types.Positive
+
+import scala.beans.BeanProperty
 
 case class Composition (
   name: String,
-  BPM: Positive[Int],
+  BPM: Int, //Positive[Int],
   soundFontPath: String,
-  tracks: Seq[Track],
+  tracks: List[Track],
   author: Option[String] = None,
   description: Option[String] = None,
   comment: Option[String] = None,
-  PPQ: Positive[Int] = Positive(480)
+  PPQ: Int = 480 //Positive[Int] = Positive(480)
 )

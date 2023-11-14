@@ -4,8 +4,8 @@ import core.Types.{Channel, MidiValue}
 
 case class Track(
   name: String,
-  channel: Channel,
-  instrument: MidiValue,
-  versions: Seq[TrackVersion],
+  channel: Int, //Channel,
+  instrument: Int, //MidiValue,
+  versions: List[TrackVersion],
   active: Boolean = true
 )
