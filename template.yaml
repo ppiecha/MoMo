@@ -1,25 +1,9 @@
-# name of composition
-name: Composition template
-# beats per minute
 BPM: 120
 soundFontPath: soundfont.fs2
-# list of tracks
 tracks:
-  - name: Piano
-    channel: 0
+  - channel: 0
     instrument: 0
     versions:
-      - name: c-dur
-        notesOn: seq(Seq(64, 66, 68. 70, 72, 74, 78, 80))
-        timing: seq(Seq(4, 4, 4, 4, 4, 4, 4, 4))
-        start: 0
+      - notesOn: seq(Seq(64, 66, 68, 70, 72, 74, 78, 80))
+        timing: seq(Seq(4, 8, 4, 4, 4, 4, 4, 4))
         duration: seq(Seq(4, 4, 4, 4, 4, 4, 4, 4))
-        velocity:
-        active: true
-    active: true
-author: Piotr Piecha
-description: MoBo music format
-comment:
-PPQ: 480
-
-

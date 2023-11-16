@@ -1,8 +1,34 @@
 package core
 
+import core.Types.MidiValue
+
+import scala.reflect.runtime.universe._
+
 object Sequence extends App {
 
-  // TODO add ser (start stop step) supporting doubles and support for chords
+  def castToNumber[A: TypeTag](a: Any) = {
+    val casted = a match {
+      case x: Integer => typeOf[A] match {
+        case t if t =:= typeOf[Double] => x.toDouble
+        case t if t =:= typeOf[Int] => x.toInt
+        case t if t =:= typeOf[Long] => x.toLong
+        case t if t =:= typeOf[MidiValue] => MidiValue(x.toInt)
+      }
+      case x: java.lang.Long => typeOf[A] match {
+        case t if t =:= typeOf[Double] => x.toDouble
+        case t if t =:= typeOf[Int] => x.toInt
+        case t if t =:= typeOf[Long] => x.toLong
+        case t if t =:= typeOf[MidiValue] => MidiValue(x.toInt)
+      }
+      case x: java.lang.Double => typeOf[A] match {
+        case t if t =:= typeOf[Double] => x.toDouble
+        case t if t =:= typeOf[Int] => x.toInt
+        case t if t =:= typeOf[Long] => x.toLong
+        case t if t =:= typeOf[MidiValue] => MidiValue(x.toInt)
+      }
+    }
+  casted.asInstanceOf[A]
+  }
 
   /** Creates iterator which repeats given sequence in a loop
    *
@@ -11,7 +37,7 @@ object Sequence extends App {
    * @param offset the position in sequence from which iterator starts (default 0)
    * @return iterator which generates sequence of values
    */
-  def seq[A](sequence: Seq[A], repeat: Long = 1, offset: Int = 0): Iterator[A] = {
+  def seq[A](sequence: Seq[A], repeat: Long = 1, offset: Int = 0)(implicit n: Numeric[A]): Iterator[A] = {
     val (h, t) = sequence.splitAt(if (offset < 0) sequence.length + offset else offset)
     Iterator.unfold((t ++ h, repeat * sequence.length)) {
       case (_, r) if r == 0 => None

@@ -28,7 +28,7 @@
                     "type": "string"
                 },
                 "comment": {
-                    "type": "null"
+                    "type": "string"
                 },
                 "PPQ": {
                     "type": "integer"
@@ -36,11 +36,6 @@
             },
             "required": [
                 "BPM",
-                "PPQ",
-                "author",
-                "comment",
-                "description",
-                "name",
                 "soundFontPath",
                 "tracks"
             ],
@@ -70,10 +65,8 @@
                 }
             },
             "required": [
-                "active",
                 "channel",
                 "instrument",
-                "name",
                 "versions"
             ],
             "title": "Track"
@@ -105,13 +98,9 @@
                 }
             },
             "required": [
-                "active",
                 "duration",
-                "name",
                 "notesOn",
-                "start",
-                "timing",
-                "velocity"
+                "timing"
             ],
             "title": "Version"
         }

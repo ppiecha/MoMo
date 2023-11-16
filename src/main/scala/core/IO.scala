@@ -1,14 +1,9 @@
 package core
 
 import scala.io.Source
-import scala.util.Try
-
-// TODO Support for reading compositions from disk
+import scala.util.Using
 
 object IO {
-  def readFile(fileName: String) = {
-    val source = Source.fromFile(fileName)
-    Try(try source.mkString finally source.close())
-  }
-
+  def readFile(fileName: String) =
+    Using(Source.fromFile(fileName)){source => source.mkString}
 }
