@@ -1,6 +1,6 @@
 package model
 
-import core.Types.{Channel, MidiValue, NoteEvent, NoteOn}
+import core.Types.{Channel, MidiValue, NoteEvent, NoteOff, NoteOn}
 import org.scalatest.flatspec.AnyFlatSpec
 
 class TestTrackVersion extends AnyFlatSpec {
@@ -66,7 +66,7 @@ class TestTrackVersion extends AnyFlatSpec {
     assert(res0.take(2).toSeq == Seq(MidiValue(100), MidiValue(100)))
   }
 
-  "getEvents" should "return iterator of NoteEvents" in {
+  "getEvents" should "return iterator of NoteOn and NoteOff events" in {
     val trackVersion = TrackVersion(
       name = None,
       notesOn = "seq(Seq(4, 4, 4, 4))",
@@ -75,7 +75,11 @@ class TestTrackVersion extends AnyFlatSpec {
       duration = "seq(Seq(4, 4, 4, 4))"
     )
     val res0 = trackVersion.getEvents(2, Channel(0)).get
-    assert(res0.take(1).toSeq == Seq(NoteEvent(NoteOn(Channel(0), MidiValue(4), MidiValue(100)), 2)))
+    assert(res0.take(2).toSeq ==
+      Seq(
+        NoteEvent(NoteOn(Channel(0), MidiValue(4), MidiValue(100)), 2),
+        NoteEvent(NoteOff(Channel(0), MidiValue(4), MidiValue(100)), 4)
+      ))
   }
 
 }

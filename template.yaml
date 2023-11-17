@@ -4,6 +4,6 @@ tracks:
   - channel: 0
     instrument: 0
     versions:
-      - notesOn: seq(Seq(64, 66, 68, 70, 72, 74, 78, 80))
-        timing: seq(Seq(4, 8, 4, 4, 4, 4, 4, 4))
-        duration: seq(Seq(4, 4, 4, 4, 4, 4, 4, 4))
+      - notesOn: seq(Seq(64, 66, 68, 69, 71, 73, 75, 76))
+        timing: seq(Seq(4, 4, 4, 4, 4, 4, 4, 4))
+        duration: seq(Seq(4, 4, 4, 4, 4, 4, 4, 1))

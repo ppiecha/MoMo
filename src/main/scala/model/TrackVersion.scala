@@ -5,8 +5,11 @@ import core.{Interpreter, Utils}
 import core.Types._
 import scala.util.Try
 
-// todo notesOn should be optional
-// todo possible are scale notes and control change values
+// todo program workflow as sequencer interface (play, stop etc...)
+// todo notesOn should be optional. Possible are scale notes and control change values
+// todo velocity
+// todo add chords as tuples
+// todo add readme and github description
 
 case class TrackVersion(
   name: Option[String],
@@ -73,7 +76,7 @@ case class TrackVersion(
         if (noteOn)
           NoteEvent(NoteOn(channel, note, velocity), timing)
         else
-          NoteEvent(NoteOn(channel, note, velocity), timing + duration)
+          NoteEvent(NoteOff(channel, note, velocity), timing + duration)
       }
     )
   }

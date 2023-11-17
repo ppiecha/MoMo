@@ -43,14 +43,17 @@ object Player {
     sequencer.setTempoInBPM(220)
     sequencer.start()
     logger.info("Playing...")
-    while (true) {
-      // Exit the program when sequencer has stopped playing.
+    var isPlaying = true
+    while (isPlaying) {
+      // Exit function when sequencer has stopped playing.
+      Thread.sleep(100)
       if (!sequencer.isRunning) {
         sequencer.close()
-        //System.exit(1)
+        logger.info("Sequencer closed")
+        isPlaying = false
       }
+      //sequencer.getMicrosecondPosition()
     }
-    logger.info("Sequencer closed")
     events
   }
 
