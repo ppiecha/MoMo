@@ -57,7 +57,6 @@ object Pattern {
   /** See Iterator trait and companion object for other useful functions/generators
     * https://www.scala-lang.org/api/current/scala/collection/Iterator$.html
     */
-
   implicit class IteratorOps[A](it: Iterator[A]) {
     def repeat(times: Int): Iterator[A] =
       Iterator

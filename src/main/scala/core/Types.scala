@@ -20,8 +20,8 @@ object Types {
 
   def mergeEvents(list: List[NoteEvents]): NoteEvents =
     list.foldLeft[NoteEvents](Try(Iterator.empty[Types.NoteEvent])) {
-      case (Failure(exception), _) => Failure(exception)
-      case (_, Failure(exception)) => Failure(exception)
+      case (Failure(exception), _)           => Failure(exception)
+      case (_, Failure(exception))           => Failure(exception)
       case (Success(accIter), Success(iter)) => Success(accIter ++ iter)
     }
 
@@ -57,9 +57,9 @@ object Types {
     override def command: MidiValue = MidiValue(NOTE_OFF)
   }
 
-  case class NoteEvent (
-    noteMessage: NoteMessage,
-    tick: Long
+  case class NoteEvent(
+      noteMessage: NoteMessage,
+      tick: Long
   )
 
   // Numbers

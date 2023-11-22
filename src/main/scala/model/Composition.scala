@@ -5,15 +5,15 @@ import core.Types.{Channel, NoteEvents, Playable, mergeEvents}
 
 import scala.util.Try
 
-case class Composition (
-  name: Option[String],
-  BPM: Int,
-  soundFontPath: Option[String],
-  tracks: List[Track],
-  author: Option[String],
-  description: Option[String],
-  comment: Option[String],
-  var PPQ: Option[Int]
+case class Composition(
+    name: Option[String],
+    BPM: Int,
+    soundFontPath: Option[String],
+    tracks: List[Track],
+    author: Option[String],
+    description: Option[String],
+    comment: Option[String],
+    var PPQ: Option[Int]
 ) extends Playable {
   require(BPM >= 0, s"BPM $BPM should not be negative")
   require(PPQ.getOrElse(0) >= 0, s"PPQ $PPQ should not be negative")

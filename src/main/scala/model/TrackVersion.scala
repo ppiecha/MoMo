@@ -24,10 +24,11 @@ case class TrackVersion(
 
   private val offset = start.getOrElse(0.0)
 
-  def interpretIterator[A](code: String) = for {
-    iter <- Interpreter.parseAndEval(code)
-    unboxed = iter.asInstanceOf[Iterator[A]]
-  } yield if (unboxed.isEmpty) throw EmptySeq(code) else unboxed
+  def interpretIterator[A](code: String) =
+    for {
+      iter <- Interpreter.parseAndEval(code)
+      unboxed = iter.asInstanceOf[Iterator[A]]
+    } yield if (unboxed.isEmpty) throw EmptySeq(code) else unboxed
 
   def getTiming(implicit ppq: Int) = {
     interpretIterator[Double](timing)
@@ -38,8 +39,7 @@ case class TrackVersion(
             val next = value + iterator.next().toTick
             Some((next, (iterator, next)))
           case _ => None
-        }
-      )
+      })
   }
 
   def getNote =
@@ -59,9 +59,8 @@ case class TrackVersion(
   }
 
   def getNoteEvents(implicit
-      ppq: Int,
-      channel: Channel = Channel(0)
-  ): NoteEvents = {
+                    ppq: Int,
+                    channel: Channel = Channel(0)): NoteEvents = {
     val zipped = for {
       notes <- getNote
       durations <- getDuration(ppq)
@@ -77,8 +76,7 @@ case class TrackVersion(
           NoteEvent(NoteOn(channel, note, velocity), timing)
         else
           NoteEvent(NoteOff(channel, note, velocity), timing + duration)
-      }
-    )
+    })
   }
 
 //  def getSequence(implicit ppq: Int, channel: Channel): Try[Sequence] = Try {

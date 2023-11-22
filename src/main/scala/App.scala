@@ -20,7 +20,7 @@ object App extends App {
 
   status match {
     case Failure(exception) => throw exception
-    case Success(_) => ()
+    case Success(_)         => ()
   }
 
   var command = ""

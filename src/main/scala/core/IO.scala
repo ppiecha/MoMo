@@ -5,5 +5,7 @@ import scala.util.Using
 
 object IO {
   def readFile(fileName: String) =
-    Using(Source.fromFile(fileName)){source => source.mkString}
+    Using(Source.fromFile(fileName)) { source =>
+      source.mkString
+    }
 }
