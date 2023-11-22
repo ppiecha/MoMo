@@ -1,77 +1,77 @@
 package model
 
-import core.Sequence.castToNumber
+import core.Exception.EmptySeq
+import core.Pattern.castToNumber
 import core.{Interpreter, Utils}
 import core.Types._
+
 import scala.util.Try
 
-// todo program workflow as sequencer interface (play, stop etc...)
-// todo notesOn should be optional. Possible are scale notes and control change values
-// todo velocity
-// todo add chords as tuples
-// todo add readme and github description
-
 case class TrackVersion(
-  name: Option[String],
-  notesOn: String,
-  timing: String,
-  start: Option[Double],
-  duration: String,
-  velocity: Option[String] = None,
-  active: Option[Boolean] = Option(true)
-) {
+    name: Option[String], // todo - required so it can be passed to command
+    notesOn: String, // todo notesOn should be optional. Possible are scale notes and control change values
+    timing: String,
+    start: Option[Double],
+    duration: String,
+    velocity: Option[String] = None,
+    active: Option[Boolean] = Option(true)
+) extends Playable {
   require(start.getOrElse(0.0) >= 0.0, s"Start $start should not be negative")
 
   implicit class DoubleOps(d: Double) {
     def toTick(implicit ppq: Int) = Utils.durToTick(d, ppq)
   }
 
-  def withDefaults() = this.copy(
-    start = if (start.isEmpty) Option(0.0) else start,
-    active = if (active.isEmpty) Option(true) else active
-  )
-
   private val offset = start.getOrElse(0.0)
 
   def interpretIterator[A](code: String) = for {
     iter <- Interpreter.parseAndEval(code)
     unboxed = iter.asInstanceOf[Iterator[A]]
-  } yield unboxed
+  } yield if (unboxed.isEmpty) throw EmptySeq(code) else unboxed
 
   def getTiming(implicit ppq: Int) = {
     interpretIterator[Double](timing)
       .map(iter => iter.map(castToNumber[Double]))
-      .map(iter => Iterator.unfold[Long, (Iterator[Double], Long)]((iter, offset.toTick)) {
-        case (iterator, value) if iterator.hasNext =>
-          val next = value + iterator.next().toTick
-          Some((next, (iterator, next)))
-        case _ => None
-      })
+      .map(iter =>
+        Iterator.unfold[Long, (Iterator[Double], Long)]((iter, offset.toTick)) {
+          case (iterator, value) if iterator.hasNext =>
+            val next = value + iterator.next().toTick
+            Some((next, (iterator, next)))
+          case _ => None
+        }
+      )
   }
 
-  def getMidiNote() =
+  def getNote =
     interpretIterator[MidiValue](notesOn).map(iter => iter.map(castToNumber[MidiValue]))
 
-  def getDuration(implicit ppq: Int) =
+  def getDuration(ppq: Int) =
     interpretIterator[Double](duration)
       .map(iter => iter.map(castToNumber[Double]))
-      .map(iter => iter.map(_.toTick))
+      .map(iter => iter.map(_.toTick(ppq)))
 
+  def getVelocity = {
+    if (velocity.getOrElse("").isEmpty) {
+      // todo refactor velocity - default velocity on composition level
+      Try(Iterator.iterate(MidiValue(100))(x => x))
+    } else
+      interpretIterator[MidiValue](velocity.get).map(iter => iter.map(castToNumber[MidiValue]))
+  }
 
-  def getVelocity() =
-    Try(Iterator.iterate(MidiValue(100))(x => x))
-
-
-  def getEvents(implicit ppq: Int, channel: Channel) = {
+  def getNoteEvents(implicit
+      ppq: Int,
+      channel: Channel = Channel(0)
+  ): NoteEvents = {
     val zipped = for {
-      notes <- getMidiNote()
+      notes <- getNote
       durations <- getDuration(ppq)
       timing <- getTiming(ppq)
-      velocity <- getVelocity()
+      velocity <- getVelocity
     } yield notes zip durations zip timing zip velocity
-    zipped.map(iter => for {
-      (((note, duration), timing), velocity) <- iter
-      noteOn <- List(true, false)
+    zipped.map(iter =>
+      for {
+        (((note, duration), timing), velocity) <- iter
+        noteOn <- List(true, false)
       } yield {
         if (noteOn)
           NoteEvent(NoteOn(channel, note, velocity), timing)
@@ -80,6 +80,15 @@ case class TrackVersion(
       }
     )
   }
+
+//  def getSequence(implicit ppq: Int, channel: Channel): Try[Sequence] = Try {
+//    val sequence = new Sequence(Sequence.PPQ, ppq)
+//    val track = sequence.createTrack()
+//    getNoteEvents(ppq, channel) match {
+//      case Failure(exception) => throw exception
+//      case Success(iter) => iter.map(_.toMidiEvent).foreach(track.add)
+//    }
+//    sequence
+//  }
+
 }
-
-

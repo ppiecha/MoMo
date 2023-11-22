@@ -1,26 +1,33 @@
 import com.typesafe.scalalogging.Logger
-import core.Types.Channel
-import core.{IO, Player, Yaml}
+import console.Player
+import core.{IO, Yaml}
 
 import scala.util.{Failure, Success, Try}
 
 object App extends App {
 
   private val logger = Logger(getClass.getName)
+
   private def getCompositionName(a: Array[String]) = Try(a(0))
 
-  private val composition = for {
+  private val status = for {
     fileName <- getCompositionName(args)
     yaml <- IO.readFile(fileName)
     composition <- Yaml.mapYaml(yaml)
-  } yield composition
-  composition match {
+    _ <- Player.reloadSoundBank(composition.soundFontPath)(Player.synth)
+    sequence <- Player.play(composition, composition.BPM)(composition.resolution)
+  } yield sequence
+
+  status match {
     case Failure(exception) => throw exception
-    case Success(value) =>
-      //println(value.tracks.head.versions.head.getEvents(480, Channel(0)).get.toSeq.toString)
-      val events = Player.playTrackVersion(value.tracks.head.versions.head)(480, Channel(0))
-      println(events)
-      //logger.info(value.take(5).toSeq.toString())
+    case Success(_) => ()
   }
 
+  var command = ""
+  while (command != "exit") {
+    print("> ")
+    command = scala.io.StdIn.readLine()
+  }
+  Player.close()
+  System.exit(0)
 }

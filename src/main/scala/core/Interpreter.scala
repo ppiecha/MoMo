@@ -13,7 +13,7 @@ object Interpreter {
     reflect.runtime.currentMirror.mkToolBox()
   }
 
-  def addImports(code: String) = Seq("import core.Sequence._", code).mkString("\n")
+  def addImports(code: String) = Seq("import core.Pattern._", code).mkString("\n")
 
   def parse(code: String): Try[Types.InterpreterTree] = Try(toolbox.parse(addImports(code)))
 

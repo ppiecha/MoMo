@@ -1,6 +1,7 @@
 package core
 
 import javax.sound.midi.ShortMessage._
+import scala.util.{Failure, Success, Try}
 
 object Types {
   type InterpreterTree = scala.reflect.runtime.universe.Tree
@@ -11,18 +12,25 @@ object Types {
 
   // Midi
 
-  //type TimeSeq = Iterator[Int]
+  type NoteEvents = Try[Iterator[Types.NoteEvent]]
 
-  //type MessageSeq[A] = Iterator[A]
+  trait Playable {
+    def getNoteEvents(implicit ppq: Int, channel: Channel = Channel(0)): NoteEvents
+  }
 
-  //type EventSeq[A] = (MessageSeq[A], TimeSeq)
+  def mergeEvents(list: List[NoteEvents]): NoteEvents =
+    list.foldLeft[NoteEvents](Try(Iterator.empty[Types.NoteEvent])) {
+      case (Failure(exception), _) => Failure(exception)
+      case (_, Failure(exception)) => Failure(exception)
+      case (Success(accIter), Success(iter)) => Success(accIter ++ iter)
+    }
 
   trait MidiConstraint extends Constrained[Int]
 
   implicit val midiConstraint: MidiConstraint =
     (value: Int) => (0 until 256) contains value
 
-  case class MidiValue(value: Int)(implicit c: MidiConstraint, n: Numeric[Int]) {
+  case class MidiValue(value: Int)(implicit c: MidiConstraint) {
     require(c.constraint(value), s"$value not in (0, 255) range")
   }
 

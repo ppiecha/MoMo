@@ -1,5 +1,5 @@
 BPM: 120
-soundFontPath: soundfont.fs2
+soundFontPath: C:\Users\piotr\_piotr_\__GIT__\Scala\Projects\music\MoMo\soundfont.sf2
 tracks:
   - channel: 0
     instrument: 0

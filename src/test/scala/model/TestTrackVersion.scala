@@ -2,8 +2,11 @@ package model
 
 import core.Types.{Channel, MidiValue, NoteEvent, NoteOff, NoteOn}
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.TryValues._
 
-class TestTrackVersion extends AnyFlatSpec {
+
+class TestTrackVersion extends AnyFlatSpec with Matchers {
 
   "getTiming" should "calculate timings incrementally" in {
     val trackVersion = TrackVersion(
@@ -13,9 +16,8 @@ class TestTrackVersion extends AnyFlatSpec {
       start = Option(0),
       duration = ""
     )
-    val res0 = trackVersion.getTiming(4).get
-    assert(res0.take(4).toSeq == Seq(4, 6, 8, 9))
-    val res1 = trackVersion.getTiming(4).get.next()
+    val iterator = trackVersion.getTiming(4)
+    iterator.success.value.toStream should contain inOrder (4, 6, 8, 9)
   }
 
   "getTiming" should "move all values equally based on start" in {
@@ -26,8 +28,8 @@ class TestTrackVersion extends AnyFlatSpec {
       start = Option(4),
       duration = ""
     )
-    val res0 = trackVersion.getTiming(4).get
-    assert(res0.take(6).toSeq == Seq(8, 40, 42, 43))
+    val iterator = trackVersion.getTiming(4)
+    iterator.success.value.toStream should contain inOrder (8, 40, 42, 43)
   }
 
   "getMidiNote" should "return iterator of Midi values" in {
@@ -38,8 +40,8 @@ class TestTrackVersion extends AnyFlatSpec {
       start = Option(0),
       duration = ""
     )
-    val res0 = trackVersion.getMidiNote().get
-    assert(res0.take(6).toSeq == Seq(MidiValue(64), MidiValue(66), MidiValue(68)))
+    val iterator = trackVersion.getNote
+    iterator.success.value.toStream should contain inOrder (MidiValue(64), MidiValue(66), MidiValue(68))
   }
 
   "getDuration" should "return iterator with duration converted to tick/long" in {
@@ -50,11 +52,11 @@ class TestTrackVersion extends AnyFlatSpec {
       start = Option(0),
       duration = "seq(Seq(4, 8, 0.5))"
     )
-    val res0 = trackVersion.getDuration(2).get
-    assert(res0.take(6).toSeq == Seq(2, 1, 16))
+    val iterator = trackVersion.getDuration(2)
+    iterator.success.value.toStream should contain inOrder (2, 1, 16)
   }
 
-  "getVelocity" should "return iterator of Midi values" in {
+  "getVelocity" should "return default velocity if it's not defined" in {
     val trackVersion = TrackVersion(
       name = None,
       notesOn = "",
@@ -62,8 +64,21 @@ class TestTrackVersion extends AnyFlatSpec {
       start = Option(0),
       duration = "seq(Seq(4, 8, 0.5))"
     )
-    val res0 = trackVersion.getVelocity().get
-    assert(res0.take(2).toSeq == Seq(MidiValue(100), MidiValue(100)))
+    val iterator = trackVersion.getVelocity
+    iterator.success.value.toStream should not be empty
+  }
+
+  "getVelocity" should "return Midi values" in {
+    val trackVersion = TrackVersion(
+      name = None,
+      notesOn = "",
+      timing = "",
+      start = Option(0),
+      duration = "",
+      velocity = Some("seq(Seq(100), -1)")
+    )
+    val iterator = trackVersion.getVelocity
+    iterator.success.value.toStream should contain (MidiValue(100))
   }
 
   "getEvents" should "return iterator of NoteOn and NoteOff events" in {
@@ -74,12 +89,14 @@ class TestTrackVersion extends AnyFlatSpec {
       start = Option(0),
       duration = "seq(Seq(4, 4, 4, 4))"
     )
-    val res0 = trackVersion.getEvents(2, Channel(0)).get
-    assert(res0.take(2).toSeq ==
-      Seq(
+    val iterator = trackVersion.getNoteEvents(2, Channel(0))
+    iterator.success.value.toStream should contain inOrder
+      (
         NoteEvent(NoteOn(Channel(0), MidiValue(4), MidiValue(100)), 2),
         NoteEvent(NoteOff(Channel(0), MidiValue(4), MidiValue(100)), 4)
-      ))
+      )
   }
+
+
 
 }

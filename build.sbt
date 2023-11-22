@@ -9,17 +9,15 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.2.16" % "test",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
   "ch.qos.logback" % "logback-classic" % "1.4.7",
-  //"com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.3",
-  //"com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.15.3",
   "io.circe" %% "circe-yaml" % "0.14.2",
   "io.circe" %% "circe-core" % "0.14.5",
   "io.circe" %% "circe-generic" % "0.14.5",
-  //"org.typelevel" %% "cats-core" % "2.10.0"
   "io.circe" %% "circe-generic-extras" % "0.14.3",
   "io.circe" %% "circe-parser" % "0.14.5",
 )
 
-resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+//resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+//resolvers ++= Resolver.sonatypeOssRepos("public")
 
 lazy val root = (project in file("."))
   .settings(
