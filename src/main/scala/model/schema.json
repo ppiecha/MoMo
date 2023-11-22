@@ -51,6 +51,9 @@
                 "channel": {
                     "type": "integer"
                 },
+                "bank": {
+                    "type": "integer"
+                },
                 "instrument": {
                     "type": "integer"
                 },

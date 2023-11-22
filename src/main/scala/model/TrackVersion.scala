@@ -72,6 +72,7 @@ case class TrackVersion(
       iter =>
         for {
           (((note, duration), timing), velocity) <- iter
+          if note.value > 0 && duration > 0 && velocity.value > 0
           command <- List(NOTE_ON, NOTE_OFF)
         } yield
           NoteEvent(
