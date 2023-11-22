@@ -24,7 +24,7 @@ object App extends App {
   }
 
   var command = ""
-  while (command != "exit") {
+  while (command.toLowerCase != "q") {
     print("> ")
     command = scala.io.StdIn.readLine()
   }

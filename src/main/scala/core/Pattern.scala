@@ -36,7 +36,7 @@ object Pattern {
   /** Creates iterator which repeats given sequence in a loop
     *
     * @param sequence
-    *   the values to be repeated
+    *   sequence of values to be repeated
     * @param repeat
     *   the number of repetitions defaults to 0. Set to -1 for Infinity
     * @param offset

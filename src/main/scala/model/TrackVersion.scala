@@ -4,6 +4,7 @@ import core.Exception.EmptySeq
 import core.Pattern.castToNumber
 import core.{Interpreter, Utils}
 import core.Types._
+import javax.sound.midi.ShortMessage._
 
 import scala.util.Try
 
@@ -67,16 +68,16 @@ case class TrackVersion(
       timing <- getTiming(ppq)
       velocity <- getVelocity
     } yield notes zip durations zip timing zip velocity
-    zipped.map(iter =>
-      for {
-        (((note, duration), timing), velocity) <- iter
-        noteOn <- List(true, false)
-      } yield {
-        if (noteOn)
-          NoteEvent(NoteOn(channel, note, velocity), timing)
-        else
-          NoteEvent(NoteOff(channel, note, velocity), timing + duration)
-    })
+    zipped.map(
+      iter =>
+        for {
+          (((note, duration), timing), velocity) <- iter
+          command <- List(NOTE_ON, NOTE_OFF)
+        } yield
+          NoteEvent(
+            NoteMessage(MidiValue(command), channel, note, velocity),
+            if (command == NOTE_OFF) timing + duration else timing
+        ))
   }
 
 //  def getSequence(implicit ppq: Int, channel: Channel): Try[Sequence] = Try {

@@ -5,6 +5,7 @@ import core.Types.{Channel, NoteEvents, Playable, mergeEvents}
 case class Track(
     name: Option[String], // todo - required so it can be passed to command
     channel: Int,
+    bank: Int,
     instrument: Int,
     versions: List[TrackVersion],
     active: Option[Boolean]

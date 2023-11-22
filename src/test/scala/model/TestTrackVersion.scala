@@ -1,10 +1,10 @@
 package model
 
-import core.Types.{Channel, MidiValue, NoteEvent, NoteOff, NoteOn}
+import core.Types.{Channel, MidiValue, NoteEvent, NoteMessage}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.TryValues._
-
+import javax.sound.midi.ShortMessage._
 
 class TestTrackVersion extends AnyFlatSpec with Matchers {
 
@@ -92,8 +92,8 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
     val iterator = trackVersion.getNoteEvents(2, Channel(0))
     iterator.success.value.toStream should contain inOrder
       (
-        NoteEvent(NoteOn(Channel(0), MidiValue(4), MidiValue(100)), 2),
-        NoteEvent(NoteOff(Channel(0), MidiValue(4), MidiValue(100)), 4)
+        NoteEvent(NoteMessage(MidiValue(NOTE_ON), Channel(0), MidiValue(4), MidiValue(100)), 2),
+        NoteEvent(NoteMessage(MidiValue(NOTE_ON), Channel(0), MidiValue(4), MidiValue(100)), 4)
       )
   }
 

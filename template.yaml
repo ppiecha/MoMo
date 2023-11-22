@@ -2,8 +2,19 @@ BPM: 120
 soundFontPath: C:\Users\piotr\_piotr_\__GIT__\Scala\Projects\music\MoMo\soundfont.sf2
 tracks:
   - channel: 0
+    name: Piano
     instrument: 0
+    bank: 0
     versions:
-      - notesOn: seq(Seq(64, 66, 68, 69, 71, 73, 75, 76))
+      - name: scale
+        notesOn: seq(Seq(64, 66, 68, 69, 71, 73, 75, 76))
+        timing: seq(Seq(4, 4, 4, 4, 4, 4, 4, 4))
+        duration: seq(Seq(4, 4, 4, 4, 4, 4, 4, 1))
+  - channel: 9
+    name: Metronome
+    instrument: 39
+    bank: 127
+    versions:
+      - notesOn: seq(Seq(0, 39, 0, 39, 0, 40, 0, 42))
         timing: seq(Seq(4, 4, 4, 4, 4, 4, 4, 4))
         duration: seq(Seq(4, 4, 4, 4, 4, 4, 4, 1))

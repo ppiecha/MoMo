@@ -1,16 +1,27 @@
 package core
 
-import javax.sound.midi.ShortMessage._
 import scala.util.{Failure, Success, Try}
 
 object Types {
+
+  sealed trait Event {
+    def message: Message
+    def tick: Long
+  }
+  case class NoteEvent(message: NoteMessage, tick: Long) extends Event
+  case class ProgramEvent(message: ProgramMessage, tick: Long) extends Event
+  case class ControlEvent(message: ControlMessage, tick: Long) extends Event
+
+  sealed trait Message
+  case class NoteMessage(command: MidiValue, channel: Channel, note: MidiValue, velocity: MidiValue) extends Message
+  case class ProgramMessage(channel: Channel, bank: MidiValue, program: MidiValue) extends Message
+  case class ControlMessage(channel: Channel, control: MidiValue, value: MidiValue) extends Message
+
   type InterpreterTree = scala.reflect.runtime.universe.Tree
 
   trait Constrained[A] {
     def constraint(value: A): Boolean
   }
-
-  // Midi
 
   type NoteEvents = Try[Iterator[Types.NoteEvent]]
 
@@ -42,25 +53,6 @@ object Types {
   case class Channel(number: Int)(implicit c: ChannelConstraint) {
     require(c.constraint(number), s"Channel $number not in (0, 16) range")
   }
-
-  sealed trait NoteMessage {
-    def command: MidiValue
-    def channel: Channel
-    def note: MidiValue
-    def velocity: MidiValue
-  }
-  final case class NoteOn(channel: Channel, note: MidiValue, velocity: MidiValue) extends NoteMessage {
-    override def command: MidiValue = MidiValue(NOTE_ON)
-  }
-
-  final case class NoteOff(channel: Channel, note: MidiValue, velocity: MidiValue) extends NoteMessage {
-    override def command: MidiValue = MidiValue(NOTE_OFF)
-  }
-
-  case class NoteEvent(
-      noteMessage: NoteMessage,
-      tick: Long
-  )
 
   // Numbers
 
