@@ -53,9 +53,16 @@ object Types {
   implicit val midiConstraint: MidiConstraint =
     (value: Int) => (0 until 256) contains value
 
-  case class MidiValue(value: Int)(implicit c: MidiConstraint) {
+  sealed trait PatternValue {
+    def toSeq: Seq[MidiValue] = this match {
+      case m @ MidiValue(_) => Seq(m)
+      case Chord(chord)     => chord
+    }
+  }
+  case class MidiValue(value: Int)(implicit c: MidiConstraint) extends PatternValue {
     require(c.constraint(value), s"$value not in (0, 255) range")
   }
+  case class Chord(chord: Seq[MidiValue]) extends PatternValue
 
   trait ChannelConstraint extends Constrained[Int]
 

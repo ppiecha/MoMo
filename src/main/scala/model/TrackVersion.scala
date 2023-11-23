@@ -4,9 +4,9 @@ import core.Exception.EmptySeq
 import core.Pattern.castToNumber
 import core.{Interpreter, Utils}
 import core.Types._
-import javax.sound.midi.ShortMessage._
 
-import scala.util.Try
+import javax.sound.midi.ShortMessage._
+import scala.util.{Failure, Success, Try}
 
 case class TrackVersion(
     name: Option[String], // todo - required so it can be passed to command
@@ -44,7 +44,8 @@ case class TrackVersion(
   }
 
   def getNote =
-    interpretIterator[MidiValue](notesOn).map(iter => iter.map(castToNumber[MidiValue]))
+    interpretIterator[PatternValue](notesOn)
+      .map(iter => iter.map(castToNumber[PatternValue]))
 
   def getDuration(ppq: Int) =
     interpretIterator[Double](duration)
@@ -59,26 +60,30 @@ case class TrackVersion(
       interpretIterator[MidiValue](velocity.get).map(iter => iter.map(castToNumber[MidiValue]))
   }
 
-  def getNoteEvents(implicit
-                    ppq: Int,
-                    channel: Channel = Channel(0)): Events = {
-    val zipped = for {
+  def zippedIterators(implicit ppq: Int) =
+    for {
       notes <- getNote
       durations <- getDuration(ppq)
       timing <- getTiming(ppq)
       velocity <- getVelocity
-    } yield notes zip durations zip timing zip velocity
-    zipped.map(
-      iter =>
+    } yield {
+      for ((((note, duration), timing), velocity) <- notes zip durations zip timing zip velocity)
+        yield (note, duration, timing, velocity)
+    }
+
+  def getNoteEvents(implicit ppq: Int, channel: Channel = Channel(0)): Events = Try {
+    zippedIterators match {
+      case Failure(exception) => throw exception
+      case Success(events) =>
         for {
-          (((note, duration), timing), velocity) <- iter
-          if note.value > 0 && duration > 0 && velocity.value > 0
+          (note, duration, timing, velocity) <- events
+          chordNote <- note.toSeq
           command <- List(NOTE_ON, NOTE_OFF)
-        } yield
-          NoteEvent(
-            NoteMessage(MidiValue(command), channel, note, velocity),
-            if (command == NOTE_OFF) timing + duration else timing
-        ))
+        } yield {
+          val tick = if (command == NOTE_OFF) timing + duration else timing
+          NoteEvent(NoteMessage(MidiValue(command), channel, chordNote, velocity), tick)
+        }
+    }
   }
 
 //  def getSequence(implicit ppq: Int, channel: Channel): Try[Sequence] = Try {

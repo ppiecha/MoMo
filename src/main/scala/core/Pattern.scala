@@ -1,34 +1,49 @@
 package core
 
-import core.Types.MidiValue
-
+import core.Types._
 import scala.reflect.runtime.universe._
 
 object Pattern {
 
-  def castToNumber[A: TypeTag](a: Any) = {
+  def castToNumber[A: TypeTag](a: Any): A = {
     val casted = a match {
       case x: Integer =>
         typeOf[A] match {
-          case t if t =:= typeOf[Double]    => x.toDouble
-          case t if t =:= typeOf[Int]       => x.toInt
-          case t if t =:= typeOf[Long]      => x.toLong
-          case t if t =:= typeOf[MidiValue] => MidiValue(x.toInt)
+          case t if t =:= typeOf[Double]       => x.toDouble
+          case t if t =:= typeOf[Int]          => x.toInt
+          case t if t =:= typeOf[Long]         => x.toLong
+          case t if t =:= typeOf[MidiValue]    => MidiValue(x.toInt)
+          case t if t =:= typeOf[PatternValue] => MidiValue(x.toInt)
         }
       case x: java.lang.Long =>
         typeOf[A] match {
-          case t if t =:= typeOf[Double]    => x.toDouble
-          case t if t =:= typeOf[Int]       => x.toInt
-          case t if t =:= typeOf[Long]      => x.toLong
-          case t if t =:= typeOf[MidiValue] => MidiValue(x.toInt)
+          case t if t =:= typeOf[Double]       => x.toDouble
+          case t if t =:= typeOf[Int]          => x.toInt
+          case t if t =:= typeOf[Long]         => x.toLong
+          case t if t =:= typeOf[MidiValue]    => MidiValue(x.toInt)
+          case t if t =:= typeOf[PatternValue] => MidiValue(x.toInt)
         }
       case x: java.lang.Double =>
         typeOf[A] match {
-          case t if t =:= typeOf[Double]    => x.toDouble
-          case t if t =:= typeOf[Int]       => x.toInt
-          case t if t =:= typeOf[Long]      => x.toLong
-          case t if t =:= typeOf[MidiValue] => MidiValue(x.toInt)
+          case t if t =:= typeOf[Double]       => x.toDouble
+          case t if t =:= typeOf[Int]          => x.toInt
+          case t if t =:= typeOf[Long]         => x.toLong
+          case t if t =:= typeOf[MidiValue]    => MidiValue(x.toInt)
+          case t if t =:= typeOf[PatternValue] => MidiValue(x.toInt)
         }
+      case x: Seq[Any] =>
+        typeOf[A] match {
+          case t if t =:= typeOf[PatternValue] =>
+            x match {
+              case Seq() => Chord(Seq())
+              case Seq(head, tail @ _*) =>
+                Chord(
+                  castToNumber[MidiValue](head) +:
+                    castToNumber[PatternValue](tail).toSeq
+                )
+            }
+        }
+      case x => throw new IllegalArgumentException(s"Unsupported type ${x.getClass.getName}")
     }
     casted.asInstanceOf[A]
   }
@@ -44,7 +59,6 @@ object Pattern {
     * @return
     *   iterator which generates sequence of values
     */
-  // todo add chords as tuples
   def seq[A](sequence: Seq[A], repeat: Long = 1, offset: Int = 0): Iterator[A] = {
     val (h, t) =
       sequence.splitAt(if (offset < 0) sequence.length + offset else offset)

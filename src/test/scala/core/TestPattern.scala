@@ -11,6 +11,11 @@ class TestPattern extends AnyFlatSpec with Matchers {
     s.take(7).toSeq shouldBe Seq(1, 2, 3)
   }
 
+  "seg" should "bla" in {
+    val s = seq(Seq(Seq(1, 4), 2, 3))
+    s.take(7).toSeq shouldBe Seq(Seq(1, 4), 2, 3)
+  }
+
   "seq" should "repeat sequence infinitely when repeat is set to -1" in {
     val s = seq(Seq(1, 2, 3), repeat = -1)
     s.take(7).toSeq shouldBe Seq(1, 2, 3, 1, 2, 3, 1)

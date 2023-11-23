@@ -1,6 +1,6 @@
 package model
 
-import core.Types.{Channel, MidiValue, NoteEvent, NoteMessage}
+import core.Types._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.TryValues._
@@ -42,6 +42,19 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
     )
     val iterator = trackVersion.getNote
     iterator.success.value.toStream should contain inOrder (MidiValue(64), MidiValue(66), MidiValue(68))
+  }
+
+  "getMidiNote" should "return chord as a sequence" in {
+    val trackVersion = TrackVersion(
+      name = None,
+      notesOn = "seq(Seq(Seq(64, 65), 66, 68))",
+      timing = "",
+      start = Option(0),
+      duration = ""
+    )
+    val iterator = trackVersion.getNote
+    iterator.success.value.toStream should contain inOrder
+      (Chord(Seq(MidiValue(64), MidiValue(65))), MidiValue(66), MidiValue(68))
   }
 
   "getDuration" should "return iterator with duration converted to tick/long" in {
