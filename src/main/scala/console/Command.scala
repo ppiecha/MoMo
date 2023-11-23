@@ -5,7 +5,7 @@ object Command {
   // todo
   def parseArgs(args: Array[String]) = ???
 
-  // todo Main program loop accepts user input (play, stop, etc...) until q is passed
+  // todo Main program loop accepts user input (play, stop, soundbank, load composition etc...) until q is passed
   def loop() = ???
 
 }

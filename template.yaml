@@ -3,8 +3,8 @@ soundFontPath: C:\Users\piotr\_piotr_\__GIT__\Scala\Projects\music\MoMo\soundfon
 tracks:
   - name: Piano
     channel: 0
-    bank: 0
-    instrument: 0
+    bank: 8
+    instrument: 80
     versions:
       - name: scale
         notesOn: seq(Seq(64, 66, 68, 69, 71, 73, 75, 76))

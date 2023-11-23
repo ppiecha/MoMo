@@ -61,7 +61,7 @@ case class TrackVersion(
 
   def getNoteEvents(implicit
                     ppq: Int,
-                    channel: Channel = Channel(0)): NoteEvents = {
+                    channel: Channel = Channel(0)): Events = {
     val zipped = for {
       notes <- getNote
       durations <- getDuration(ppq)

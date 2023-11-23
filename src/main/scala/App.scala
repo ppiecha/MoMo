@@ -23,6 +23,8 @@ object App extends App {
     case Success(_)         => ()
   }
 
+  Player.synth.map(s => s.getLoadedInstruments.foreach(println))
+
   var command = ""
   while (command.toLowerCase != "q") {
     print("> ")

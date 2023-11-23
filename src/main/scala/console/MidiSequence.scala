@@ -31,7 +31,7 @@ object MidiSequence {
   def makeMidiEvents(event: Event): Seq[MidiEvent] =
     makeMidiMessages(event.message).map(msg => new MidiEvent(msg, event.tick))
 
-  def fromNoteEvents(noteEvents: NoteEvents)(implicit ppq: Int): Try[Sequence] = Try {
+  def fromNoteEvents(noteEvents: Events)(implicit ppq: Int): Try[Sequence] = Try {
     val sequence = new Sequence(Sequence.PPQ, ppq, 1)
     noteEvents match {
       case Failure(exception) => throw exception

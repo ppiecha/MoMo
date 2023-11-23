@@ -23,14 +23,26 @@ object Types {
     def constraint(value: A): Boolean
   }
 
-  type NoteEvents = Try[Iterator[Types.NoteEvent]]
+  type Events = Try[Iterator[Event]]
 
-  trait Playable {
-    def getNoteEvents(implicit ppq: Int, channel: Channel = Channel(0)): NoteEvents
+  object Events {
+    def fromSeqOfEvents(events: Seq[Event]): Events = Try(events.iterator)
   }
 
-  def mergeEvents(list: List[NoteEvents]): NoteEvents =
-    list.foldLeft[NoteEvents](Try(Iterator.empty[Types.NoteEvent])) {
+  implicit class EventsOps(events: Events) {
+
+    def ++(newEvents: Events): Events = mergeEvents(Seq(events, newEvents))
+
+    def ++(newEvents: Seq[Event]): Events = mergeEvents(Seq(events, Events.fromSeqOfEvents(newEvents)))
+
+  }
+
+  trait Playable {
+    def getNoteEvents(implicit ppq: Int, channel: Channel = Channel(0)): Events
+  }
+
+  def mergeEvents(events: Seq[Events]): Events =
+    events.foldLeft[Events](Try(Iterator.empty[Types.NoteEvent])) {
       case (Failure(exception), _)           => Failure(exception)
       case (_, Failure(exception))           => Failure(exception)
       case (Success(accIter), Success(iter)) => Success(accIter ++ iter)
