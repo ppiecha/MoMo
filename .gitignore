@@ -67,5 +67,4 @@ jitwatch.out
 project/**/metals.sbt
 
 .bsp
-/.gitignore
-/soundfont.sf2
+*.sf2

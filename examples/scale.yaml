@@ -1,5 +1,5 @@
 BPM: 120
-#soundFontPath: C:\Users\piotr\_piotr_\__GIT__\Scala\Projects\music\MoMo\soundfont.sf2
+soundFontPath: FluidR3_GM.sf2
 tracks:
   - name: Piano
     channel: 0

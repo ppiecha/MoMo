@@ -25,7 +25,9 @@ object Player {
   case class SoundFont(pathName: Option[String])(implicit synth: Synth) {
     def getSoundBank: Try[Option[Soundbank]] = pathName match {
       case Some(pathName) =>
-        Try(MidiSystem.getSoundbank(new File(pathName))) match {
+        val defaultSoundFont = os.pwd / "soundfonts" / pathName
+        val filePath = if (os.exists(defaultSoundFont)) defaultSoundFont.toString() else pathName
+        Try(MidiSystem.getSoundbank(new File(filePath))) match {
           case Failure(exception) => Failure(exception)
           case Success(soundBank) =>
             synth.map(s =>
