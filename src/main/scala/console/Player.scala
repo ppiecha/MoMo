@@ -1,7 +1,7 @@
 package console
 
 import com.typesafe.scalalogging.Logger
-import core.Types.{Channel, Playable}
+import types._
 
 import java.io.File
 import javax.sound.midi._
@@ -44,7 +44,7 @@ object Player {
 
   def reloadSoundBank(pathName: Option[String])(implicit synth: Synth): Synth = {
     if (pathName.isEmpty || pathName == soundPath) {
-      logger.warn(s"Soundbank re-load discarded. Soundpath $soundPath")
+      logger.warn(s"Soundbank reload discarded. Soundpath $soundPath")
       synth
     } else
       synth match {

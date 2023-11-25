@@ -1,6 +1,6 @@
 package console
 
-import core.Types._
+import types._
 
 import javax.sound.midi._
 import javax.sound.midi.ShortMessage._

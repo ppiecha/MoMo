@@ -1,6 +1,7 @@
 package core
 
-import core.Types._
+import types._
+
 import scala.reflect.runtime.universe._
 
 object Pattern {
@@ -9,43 +10,50 @@ object Pattern {
     val casted = a match {
       case x: Integer =>
         typeOf[A] match {
-          case t if t =:= typeOf[Double]       => x.toDouble
-          case t if t =:= typeOf[Int]          => x.toInt
-          case t if t =:= typeOf[Long]         => x.toLong
-          case t if t =:= typeOf[MidiValue]    => MidiValue(x.toInt)
-          case t if t =:= typeOf[PatternValue] => MidiValue(x.toInt)
+          case t if t =:= typeOf[Double]                  => x.toDouble
+          case t if t =:= typeOf[Int]                     => x.toInt
+          case t if t =:= typeOf[Long]                    => x.toLong
+          case t if t =:= typeOf[MidiValue]               => MidiValue(x.toInt)
+          case t if t =:= typeOf[PatternValue[MidiValue]] => SingleValue(MidiValue(x.toInt))
+          case t if t =:= typeOf[PatternValue[IntValue]]  => SingleValue(IntValue(x.toInt))
         }
       case x: java.lang.Long =>
         typeOf[A] match {
-          case t if t =:= typeOf[Double]       => x.toDouble
-          case t if t =:= typeOf[Int]          => x.toInt
-          case t if t =:= typeOf[Long]         => x.toLong
-          case t if t =:= typeOf[MidiValue]    => MidiValue(x.toInt)
-          case t if t =:= typeOf[PatternValue] => MidiValue(x.toInt)
+          case t if t =:= typeOf[Double]                  => x.toDouble
+          case t if t =:= typeOf[Int]                     => x.toInt
+          case t if t =:= typeOf[Long]                    => x.toLong
+          case t if t =:= typeOf[MidiValue]               => MidiValue(x.toInt)
+          case t if t =:= typeOf[PatternValue[MidiValue]] => SingleValue(MidiValue(x.toInt))
+          case t if t =:= typeOf[PatternValue[IntValue]]  => SingleValue(IntValue(x.toInt))
         }
       case x: java.lang.Double =>
         typeOf[A] match {
-          case t if t =:= typeOf[Double]       => x.toDouble
-          case t if t =:= typeOf[Int]          => x.toInt
-          case t if t =:= typeOf[Long]         => x.toLong
-          case t if t =:= typeOf[MidiValue]    => MidiValue(x.toInt)
-          case t if t =:= typeOf[PatternValue] => MidiValue(x.toInt)
+          case t if t =:= typeOf[Double]                  => x.toDouble
+          case t if t =:= typeOf[Int]                     => x.toInt
+          case t if t =:= typeOf[Long]                    => x.toLong
+          case t if t =:= typeOf[MidiValue]               => MidiValue(x.toInt)
+          case t if t =:= typeOf[PatternValue[MidiValue]] => SingleValue(MidiValue(x.toInt))
+          case t if t =:= typeOf[PatternValue[IntValue]]  => SingleValue(IntValue(x.toInt))
         }
       case x: Seq[Any] =>
         typeOf[A] match {
-          case t if t =:= typeOf[PatternValue] =>
+          case t if t =:= typeOf[PatternValue[MidiValue]] =>
             x match {
               case Seq() => Chord(Seq())
               case Seq(head, tail @ _*) =>
-                Chord(
-                  castToNumber[MidiValue](head) +:
-                    castToNumber[PatternValue](tail).toSeq
-                )
+                Chord(castToNumber[MidiValue](head) +: castToNumber[PatternValue[MidiValue]](tail).toSeq)
+            }
+          case t if t =:= typeOf[PatternValue[IntValue]] =>
+            x match {
+              case Seq() => Chord(Seq())
+              case Seq(head, tail @ _*) =>
+                Chord(castToNumber[IntValue](head) +: castToNumber[PatternValue[IntValue]](tail).toSeq)
             }
         }
       case x => throw new IllegalArgumentException(s"Unsupported type ${x.getClass.getName}")
     }
-    casted.asInstanceOf[A]
+    val res = casted.asInstanceOf[A]
+    res
   }
 
   /** Creates iterator which repeats given sequence in a loop

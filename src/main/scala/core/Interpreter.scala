@@ -1,6 +1,7 @@
 package core
 
 import com.typesafe.scalalogging.Logger
+import types._
 
 import scala.util.Try
 
@@ -15,9 +16,9 @@ object Interpreter {
 
   def addImports(code: String) = Seq("import core.Pattern._", code).mkString("\n")
 
-  def parse(code: String): Try[Types.InterpreterTree] = Try(toolbox.parse(addImports(code)))
+  def parse(code: String): Try[InterpreterTree] = Try(toolbox.parse(addImports(code)))
 
-  def eval(tree: Types.InterpreterTree) = Try(toolbox.eval(tree))
+  def eval(tree: InterpreterTree) = Try(toolbox.eval(tree))
 
   def parseAndEval(code: String): Try[Any] = {
     logger.info(s"Parsing and evaluating $code")

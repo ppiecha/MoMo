@@ -36,10 +36,9 @@
             },
             "required": [
                 "BPM",
-                "soundFontPath",
                 "tracks"
             ],
-            "title": "Welcome8"
+            "title": "Composition"
         },
         "Track": {
             "type": "object",
@@ -81,7 +80,13 @@
                 "name": {
                     "type": "string"
                 },
-                "notesOn": {
+                "scale": {
+                    "type": "string"
+                },
+                "scaleNote": {
+                    "type": "string"
+                },
+                "midiNote": {
                     "type": "string"
                 },
                 "timing": {
@@ -102,7 +107,6 @@
             },
             "required": [
                 "duration",
-                "notesOn",
                 "timing"
             ],
             "title": "Version"

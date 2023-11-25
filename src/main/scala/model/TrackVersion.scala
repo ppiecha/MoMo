@@ -1,16 +1,18 @@
 package model
 
-import core.Exception.EmptySeq
 import core.Pattern.castToNumber
 import core.{Interpreter, Utils}
-import core.Types._
+
+import types._
 
 import javax.sound.midi.ShortMessage._
 import scala.util.{Failure, Success, Try}
 
 case class TrackVersion(
-    name: Option[String], // todo - required so it can be passed to command
-    notesOn: String, // todo notesOn should be optional. Possible are scale notes and control change values
+    name: String,
+    scale: Option[String],
+    scaleNote: Option[String],
+    midiNote: Option[String],
     timing: String,
     start: Option[Double],
     duration: String,
@@ -29,7 +31,7 @@ case class TrackVersion(
     for {
       iter <- Interpreter.parseAndEval(code)
       unboxed = iter.asInstanceOf[Iterator[A]]
-    } yield if (unboxed.isEmpty) throw EmptySeq(code) else unboxed
+    } yield unboxed
 
   def getTiming(implicit ppq: Int) = {
     interpretIterator[Double](timing)
@@ -43,9 +45,12 @@ case class TrackVersion(
       })
   }
 
-  def getNote =
-    interpretIterator[PatternValue](notesOn)
-      .map(iter => iter.map(castToNumber[PatternValue]))
+  def getMidiNote = midiNote match {
+    case Some(midiNote) =>
+      interpretIterator[PatternValue[MidiValue]](midiNote)
+        .map(iter => iter.map(castToNumber[PatternValue[MidiValue]]))
+    case None => Try(Iterator.empty[PatternValue[MidiValue]])
+  }
 
   def getDuration(ppq: Int) =
     interpretIterator[Double](duration)
@@ -62,7 +67,7 @@ case class TrackVersion(
 
   def zippedIterators(implicit ppq: Int) =
     for {
-      notes <- getNote
+      notes <- getMidiNote
       durations <- getDuration(ppq)
       timing <- getTiming(ppq)
       velocity <- getVelocity

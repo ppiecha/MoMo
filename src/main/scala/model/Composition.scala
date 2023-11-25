@@ -1,7 +1,6 @@
 package model
 
-import core.Types
-import core.Types.{Channel, Events, Playable, mergeEvents}
+import types._
 
 import scala.util.Try
 
@@ -20,9 +19,9 @@ case class Composition(
 
   def resolution: Int = if (PPQ.isEmpty) 480 else PPQ.get
 
-  def getNoteEvents(implicit ppq: Int, channel: Types.Channel = Channel(0)): Events = {
+  def getNoteEvents(implicit ppq: Int, channel: Channel = Channel(0)): Events = {
     val compositionEvents = tracks.filter(_.active.getOrElse(true)).map(t => t.getNoteEvents)
-    mergeEvents(compositionEvents)
+    Events.mergeEvents(compositionEvents)
   }
 
   // todo - validate uniqueness of track and version names
