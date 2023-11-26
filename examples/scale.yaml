@@ -1,4 +1,5 @@
 BPM: 120
+lengthLimitInSeconds: 10
 soundFontPath: FluidR3_GM.sf2
 tracks:
   - name: Piano
@@ -16,10 +17,10 @@ tracks:
         duration: seq(Seq(4), -1)
   - name: Metronome
     channel: 9
-    bank: 127
-    instrument: 42
+    bank: 0
+    instrument: 0
     versions:
       - name: wood
-        midiNote: seq(Seq(80), -1)
+        midiNote: seq(Seq(42), -1)
         timing: seq(Seq(8), -1)
         duration: seq(Seq(4), -1)

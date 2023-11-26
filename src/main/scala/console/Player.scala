@@ -5,6 +5,7 @@ import types._
 
 import java.io.File
 import javax.sound.midi._
+import javax.sound.midi.ShortMessage._
 import scala.util.{Failure, Success, Try}
 
 object Player {
@@ -74,12 +75,24 @@ object Player {
   def getSequencer = {
     Try(MidiSystem.getSequencer(false)) match {
       case Failure(exception) => Failure(exception)
-      case Success(seq) =>
+      case Success(sequencer) =>
         synth match {
           case Failure(exception) => Failure(exception)
           case Success(synth) =>
-            seq.getTransmitter.setReceiver(synth.getReceiver)
-            Success(seq)
+            sequencer.getTransmitter.setReceiver(synth.getReceiver)
+            sequencer.addControllerEventListener(
+              (event: ShortMessage) =>
+                logger.info(
+                  s"Controller Event Listener. " +
+                    s"Channel ${event.getChannel} " +
+                    s"command ${event.getCommand} " +
+                    s"data1 ${event.getData1} " +
+                    s"data2 ${event.getData1}"
+              ),
+              Array.range(0, 128)
+            )
+            sequencer.addMetaEventListener((meta: MetaMessage) => if (meta.getType == 0x2f) sequencer.close())
+            Success(sequencer)
         }
     }
   }

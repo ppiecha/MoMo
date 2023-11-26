@@ -15,8 +15,9 @@ case class Track(
 
   def getNoteEvents(implicit opt: PlayOptions, channel: Int = 0): Events = {
     val trackEvents = versions.filter(_.active.getOrElse(true)).map(_.getNoteEvents(opt, this.channel))
-    val programEvent = ProgramEvent(ProgramMessage(channel, MidiValue(bank), MidiValue(instrument)), 0)
+    val programEvent = ProgramEvent(ProgramMessage(this.channel, MidiValue(bank), MidiValue(instrument)), 0)
     val programEvents = Events.fromSeqOfEvents(Seq(programEvent))
+    //println(programEvent)
     Events.mergeEvents(programEvents +: trackEvents)
   }
 

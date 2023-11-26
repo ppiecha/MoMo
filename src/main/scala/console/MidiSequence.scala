@@ -1,6 +1,5 @@
 package console
 
-import core.Utils.tickToSecond
 import types._
 
 import javax.sound.midi._
@@ -11,6 +10,7 @@ object MidiSequence {
 
   def midiMessage(command: MidiValue, channel: Int, data1: MidiValue, data2: MidiValue): ShortMessage = {
     val msg = new ShortMessage()
+    //println("midiMessage", channel, command, data1, data2)
     msg.setMessage(command.value, channel, data1.value, data2.value)
     msg
   }
@@ -29,8 +29,9 @@ object MidiSequence {
         Seq(midiMessage(CONTROL_CHANGE, channel, control, value))
     }
 
-  def makeMidiEvents(event: Event): Seq[MidiEvent] =
+  def makeMidiEvents(event: Event): Seq[MidiEvent] = {
     makeMidiMessages(event.message).map(msg => new MidiEvent(msg, event.tick))
+  }
 
   def fromNoteEvents(noteEvents: Events)(implicit opt: PlayOptions): Try[Sequence] = Try {
     val sequence = new Sequence(Sequence.PPQ, opt.PPQ, 1)
