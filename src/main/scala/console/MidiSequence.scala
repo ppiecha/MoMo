@@ -1,5 +1,6 @@
 package console
 
+import core.Utils.tickToSecond
 import types._
 
 import javax.sound.midi._
@@ -8,9 +9,9 @@ import scala.util.{Failure, Success, Try}
 
 object MidiSequence {
 
-  def midiMessage(command: MidiValue, channel: Channel, data1: MidiValue, data2: MidiValue): ShortMessage = {
+  def midiMessage(command: MidiValue, channel: Int, data1: MidiValue, data2: MidiValue): ShortMessage = {
     val msg = new ShortMessage()
-    msg.setMessage(command.value, channel.number, data1.value, data2.value)
+    msg.setMessage(command.value, channel, data1.value, data2.value)
     msg
   }
 
@@ -20,23 +21,25 @@ object MidiSequence {
         Seq(midiMessage(command, channel, note, velocity))
       case ProgramMessage(channel, bank, program) =>
         Seq(
-          midiMessage(MidiValue(CONTROL_CHANGE), channel, MidiValue(0), MidiValue(bank.value >> 7)),
-          midiMessage(MidiValue(CONTROL_CHANGE), channel, MidiValue(32), MidiValue(bank.value & 0x7f)),
-          midiMessage(MidiValue(PROGRAM_CHANGE), channel, program, MidiValue(0))
+          midiMessage(MidiValue(CONTROL_CHANGE), channel, 0, bank.value >> 7),
+          midiMessage(MidiValue(CONTROL_CHANGE), channel, 32, bank.value & 0x7f),
+          midiMessage(MidiValue(PROGRAM_CHANGE), channel, program, 0)
         )
       case ControlMessage(channel, control, value) =>
-        Seq(midiMessage(MidiValue(CONTROL_CHANGE), channel, control, value))
+        Seq(midiMessage(CONTROL_CHANGE, channel, control, value))
     }
 
   def makeMidiEvents(event: Event): Seq[MidiEvent] =
     makeMidiMessages(event.message).map(msg => new MidiEvent(msg, event.tick))
 
-  def fromNoteEvents(noteEvents: Events)(implicit ppq: Int): Try[Sequence] = Try {
-    val sequence = new Sequence(Sequence.PPQ, ppq, 1)
+  def fromNoteEvents(noteEvents: Events)(implicit opt: PlayOptions): Try[Sequence] = Try {
+    val sequence = new Sequence(Sequence.PPQ, opt.PPQ, 1)
     noteEvents match {
       case Failure(exception) => throw exception
       case Success(iter) =>
-        iter.flatMap(makeMidiEvents).foreach(sequence.getTracks.head.add)
+        iter
+          .flatMap(makeMidiEvents)
+          .foreach(sequence.getTracks.head.add)
         sequence
     }
   }

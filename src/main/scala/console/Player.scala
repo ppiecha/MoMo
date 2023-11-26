@@ -94,14 +94,14 @@ object Player {
       println("Sequencer closed")
     }
 
-  def play(p: Playable, BPM: Int)(implicit ppq: Int) =
+  def play(p: Playable)(implicit opt: PlayOptions) =
     for {
       sequencer <- getSequencer
       sequence <- MidiSequence.fromNoteEvents(p.getNoteEvents)
     } yield {
       sequencer.open()
       sequencer.setSequence(sequence)
-      sequencer.setTempoInBPM(BPM)
+      sequencer.setTempoInBPM(opt.BPM)
       sequencer.start()
       sequence
     }

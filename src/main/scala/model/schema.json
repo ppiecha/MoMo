@@ -81,7 +81,7 @@
                     "type": "string"
                 },
                 "scale": {
-                    "type": "string"
+                    "$ref": "#/definitions/Scale"
                 },
                 "scaleNote": {
                     "type": "string"
@@ -110,6 +110,23 @@
                 "timing"
             ],
             "title": "Version"
+        },
+        "Scale": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "degrees": {
+                    "type": "string"
+                },
+                "rootMidiNote": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "degrees",
+                "rootMidiNote"
+            ],
+            "title": "Scale"
         }
     }
 }

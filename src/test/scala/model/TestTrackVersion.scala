@@ -11,7 +11,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
 
   "getTiming" should "calculate timings incrementally" in {
     val trackVersion =
-      TrackVersion(name = "", midiNote = None, timing = "seq(Seq(4, 8, 8, 16))", start = Option(0), duration = "", scale = None,
+      TrackVersion(name = "", midiNote = None, timing = "seq(Seq(4, 8, 8, 16))", startAt = Option(0), duration = "", scale = None,
         scaleNote = None)
     val iterator = trackVersion.getTiming(4)
     iterator.success.value.toStream should contain inOrder (4, 6, 8, 9)
@@ -19,7 +19,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
 
   "getTiming" should "move all values equally based on start" in {
     val trackVersion =
-      TrackVersion(name = "", midiNote = None, timing = "seq(Seq(4, 0.5, 8, 16))", start = Option(4), duration = "", scale = None,
+      TrackVersion(name = "", midiNote = None, timing = "seq(Seq(4, 0.5, 8, 16))", startAt = Option(4), duration = "", scale = None,
         scaleNote = None)
     val iterator = trackVersion.getTiming(4)
     iterator.success.value.toStream should contain inOrder (8, 40, 42, 43)
@@ -31,7 +31,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
         name = "",
         midiNote = Option("seq(Seq(64, 66, 68))"),
         timing = "",
-        start = Option(0),
+        startAt = Option(0),
         duration = "",
         scale = None,
         scaleNote = None
@@ -46,7 +46,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
       name = "",
       midiNote = Option("seq(Seq(Seq(64, 65), 66, 68))"),
       timing = "",
-      start = Option(0),
+      startAt = Option(0),
       duration = "", scale = None,
       scaleNote = None
     )
@@ -57,7 +57,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
 
   "getDuration" should "return iterator with duration converted to tick/long" in {
     val trackVersion =
-      TrackVersion(name = "", midiNote = None, timing = "", start = Option(0), duration = "seq(Seq(4, 8, 0.5))", scale = None,
+      TrackVersion(name = "", midiNote = None, timing = "", startAt = Option(0), duration = "seq(Seq(4, 8, 0.5))", scale = None,
         scaleNote = None)
     val iterator = trackVersion.getDuration(2)
     iterator.success.value.toStream should contain inOrder (2, 1, 16)
@@ -65,7 +65,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
 
   "getVelocity" should "return default velocity if it's not defined" in {
     val trackVersion =
-      TrackVersion(name = "", midiNote = None, timing = "", start = Option(0), duration = "seq(Seq(4, 8, 0.5))", scale = None,
+      TrackVersion(name = "", midiNote = None, timing = "", startAt = Option(0), duration = "seq(Seq(4, 8, 0.5))", scale = None,
         scaleNote = None)
     val iterator = trackVersion.getVelocity
     iterator.success.value.toStream should not be empty
@@ -76,7 +76,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
       name = "",
       midiNote = None,
       timing = "",
-      start = Option(0),
+      startAt = Option(0),
       duration = "",
       velocity = Some("seq(Seq(100), -1)"), scale = None,
       scaleNote = None
@@ -90,15 +90,15 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
       name = "",
       midiNote = Option("seq(Seq(4, 4, 4, 4))"),
       timing = "seq(Seq(4, 4, 4, 4))",
-      start = Option(0),
+      startAt = Option(0),
       duration = "seq(Seq(4, 4, 4, 4))", scale = None,
       scaleNote = None
     )
-    val iterator = trackVersion.getNoteEvents(2, Channel(0))
+    val iterator = trackVersion.getNoteEvents(PlayOptions(PPQ = 2))
     iterator.success.value.toStream should contain inOrder
       (
-        NoteEvent(NoteMessage(MidiValue(NOTE_ON), Channel(0), MidiValue(4), MidiValue(100)), 2),
-        NoteEvent(NoteMessage(MidiValue(NOTE_ON), Channel(0), MidiValue(4), MidiValue(100)), 4)
+        NoteEvent(NoteMessage(MidiValue(NOTE_ON), 0, MidiValue(4), MidiValue(100)), 2),
+        NoteEvent(NoteMessage(MidiValue(NOTE_OFF), 0, MidiValue(4), MidiValue(100)), 4)
       )
   }
 
