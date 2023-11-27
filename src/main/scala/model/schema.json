@@ -12,6 +12,9 @@
                 "BPM": {
                     "type": "integer"
                 },
+                "lengthLimitInSeconds": {
+                    "type": "number"
+                },
                 "soundFontPath": {
                     "type": "string"
                 },
@@ -92,7 +95,7 @@
                 "timing": {
                     "type": "string"
                 },
-                "start": {
+                "startAt": {
                     "type": "integer"
                 },
                 "duration": {

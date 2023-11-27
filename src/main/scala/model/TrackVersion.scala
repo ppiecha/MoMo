@@ -6,6 +6,7 @@ import core.{Interpreter, Utils}
 import types._
 
 import javax.sound.midi.ShortMessage._
+import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
 
 case class TrackVersion(
@@ -19,21 +20,24 @@ case class TrackVersion(
     velocity: Option[String] = None,
     active: Option[Boolean] = Option(true)
 ) extends Playable {
-  require(startAt.getOrElse(0.0) >= 0.0, s"Start $startAt should not be negative")
+  require(startAt.getOrElse(0.0) >= 0.0, s"$name. Start $startAt should not be negative")
+  require(!name.isBlank, s"$name. Name can't be empty")
+  require(!timing.isBlank, s"$name. Timing can't be empty")
+  require(!duration.isBlank, s"$name. Duration can't be empty")
 
   implicit class DoubleOps(d: Double) {
-    def toTick(implicit ppq: Int) = Utils.durToTick(d, ppq)
+    def toTick(implicit ppq: Int): Long = Utils.durToTick(d, ppq)
   }
 
   private val offset = startAt.getOrElse(0.0)
 
-  def interpretIterator[A](code: String) =
+  def interpretIterator[A](code: String): Events[A] =
     for {
       iter <- Interpreter.parseAndEval(code)
       unboxed = iter.asInstanceOf[Iterator[A]]
     } yield unboxed
 
-  def getTiming(implicit ppq: Int) = {
+  def getTiming(implicit ppq: Int): Events[Long] = {
     interpretIterator[Double](timing)
       .map(iter => iter.map(castToNumber[Double]))
       .map(iter =>
@@ -45,26 +49,32 @@ case class TrackVersion(
       })
   }
 
-  def getMidiNote = midiNote match {
-    case Some(midiNote) =>
-      interpretIterator[PatternValue[MidiValue]](midiNote)
-        .map(iter => iter.map(castToNumber[PatternValue[MidiValue]]))
-    case None => Try(Iterator.empty[PatternValue[MidiValue]])
+  def getNote[A <: InputValue](pattern: String)(implicit tag: TypeTag[A]): Events[PatternValue[InputValue]] = {
+    if (pattern.isBlank) throw new IllegalArgumentException("Note sequence is empty")
+    interpretIterator[PatternValue[A]](pattern)
+      .map(iter =>
+        typeOf[A] match {
+          case t if t =:= typeOf[IntValue]  => iter.map(castToNumber[PatternValue[IntValue]])
+          case t if t =:= typeOf[MidiValue] => iter.map(castToNumber[PatternValue[MidiValue]])
+      })
   }
 
-  def getScale = scale match {
-    case Some(scale) => ???
-    case None        => ???
+  def getNote: Events[PatternValue[InputValue]] = (scaleNote, midiNote) match {
+    case (None, None)            => Failure(new IllegalArgumentException("Notes not defined"))
+    case (Some(scaleNote), None) => getNote[IntValue](scaleNote)
+    case (None, Some(midiNote))  => getNote[MidiValue](midiNote)
+    case (Some(_), Some(_)) =>
+      Failure(
+        new IllegalArgumentException("Either scaleNote or midiNote can be defined at the same time")
+      )
   }
 
-  def getScaleNote = ???
-
-  def getDuration(ppq: Int) =
+  def getDuration(ppq: Int): Events[Long] =
     interpretIterator[Double](duration)
       .map(iter => iter.map(castToNumber[Double]))
       .map(iter => iter.map(_.toTick(ppq)))
 
-  def getVelocity = {
+  def getVelocity: Events[MidiValue] = {
     if (velocity.getOrElse("").isEmpty) {
       // todo refactor velocity - default velocity on composition level
       Try(Iterator.iterate(MidiValue(100))(x => x))
@@ -72,9 +82,11 @@ case class TrackVersion(
       interpretIterator[MidiValue](velocity.get).map(iter => iter.map(castToNumber[MidiValue]))
   }
 
-  def zippedIterators(implicit ppq: Int) =
+  def zippedIterators(implicit
+                      ppq: Int,
+                      scale: Option[Scale]): Events[(PatternValue[InputValue], Long, Long, MidiValue)] =
     for {
-      notes <- getMidiNote
+      notes <- getNote
       durations <- getDuration(ppq)
       timing <- getTiming(ppq)
       velocity <- getVelocity
@@ -83,14 +95,15 @@ case class TrackVersion(
         yield (note, duration, timing, velocity)
     }
 
-  def getNoteEvents(implicit opt: PlayOptions, channel: Int = 0): Events = Try {
-    (zippedIterators(opt.PPQ) match {
+  def getNoteEvents(implicit opt: PlayOptions, channel: Int = 0): Events[Event] = Try {
+    implicit val scale: Option[Scale] = this.scale
+    (zippedIterators(opt.PPQ, scale) match {
       case Failure(exception) => throw exception
       case Success(events) =>
         for {
           (note, duration, timing, velocity) <- events
-          chordNote <- note.toSeq
-          if chordNote > 0 && duration > 0 && velocity > 0
+          chordNote <- note.toSeq.map(_.toMidi)
+          if duration > 0 && velocity > 0
           command <- List(NOTE_ON, NOTE_OFF)
         } yield {
           val tick = if (command == NOTE_OFF) timing + duration else timing

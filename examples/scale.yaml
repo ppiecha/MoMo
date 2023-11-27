@@ -11,8 +11,7 @@ tracks:
         scale:
           degrees: 2 4 5 7 9 11
           rootMidiNote: 60
-        # scaleNote: seq(Seq(1, 2, 3, 4, 5, 6, 7 ,8, 8, 7, 6, 5, 4, 3, 2, 1), -1)
-        midiNote: seq(Seq(Seq(64, 76), Seq(66, 75), Seq(68, 73), Seq(69, 71), 71, Seq(73, 68), Seq(75, 66), Seq(76, 64)), -1)
+        scaleNote: seq(Seq(0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0))
         timing: seq(Seq(4), -1)
         duration: seq(Seq(4), -1)
   - name: Metronome
@@ -21,6 +20,7 @@ tracks:
     instrument: 0
     versions:
       - name: wood
+        startAt: 8
         midiNote: seq(Seq(42), -1)
-        timing: seq(Seq(8), -1)
+        timing: seq(Seq(4), -1)
         duration: seq(Seq(4), -1)

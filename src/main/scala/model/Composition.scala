@@ -25,7 +25,7 @@ case class Composition(
 
   val offset: Double = if (startAt.isEmpty) 0.0 else startAt.get
 
-  def getNoteEvents(implicit opt: PlayOptions, channel: Int = 0): Events = {
+  def getNoteEvents(implicit opt: PlayOptions, channel: Int = 0): Events[Event] = {
     val compositionEvents = tracks.filter(_.active.getOrElse(true)).map(t => t.getNoteEvents)
     Events.mergeEvents(compositionEvents)
   }

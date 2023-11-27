@@ -2,17 +2,29 @@ package types
 
 /** MIDI & Pattern values
   */
-sealed trait InputValue
+sealed trait InputValue {
+  def toMidi(implicit scale: Option[Scale]): MidiValue
+}
 case class MidiValue(value: Int)(implicit c: MidiConstraint) extends InputValue {
   require(c.constraint(value), s"$value not in (0, 255) range")
+  def toMidi(implicit scale: Option[Scale]): MidiValue = this
 }
-case class IntValue(value: Int) extends InputValue
+case class IntValue(value: Int) extends InputValue {
+  def toMidi(implicit scale: Option[Scale]): MidiValue = scale match {
+    case Some(scale) => scale.toMidiValue(value)
+    case None        => throw new IllegalArgumentException("Scale not defined")
+  }
+}
 
-sealed trait PatternValue[A] {
+sealed trait PatternValue[+A <: InputValue] {
   def toSeq: Seq[A] = this match {
     case SingleValue(s) => Seq(s)
     case Chord(chord)   => chord
   }
+  def toMidi(implicit scale: Option[Scale]): PatternValue[MidiValue] = this match {
+    case SingleValue(value) => SingleValue(value.toMidi)
+    case Chord(chord)       => Chord(chord.map(_.toMidi))
+  }
 }
-case class SingleValue[A](value: A) extends PatternValue[A]
-case class Chord[A](chord: Seq[A]) extends PatternValue[A]
+case class SingleValue[A <: InputValue](value: A) extends PatternValue[A]
+case class Chord[A <: InputValue](chord: Seq[A]) extends PatternValue[A]

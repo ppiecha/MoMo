@@ -5,7 +5,6 @@ import types._
 
 import java.io.File
 import javax.sound.midi._
-import javax.sound.midi.ShortMessage._
 import scala.util.{Failure, Success, Try}
 
 object Player {
@@ -72,7 +71,7 @@ object Player {
       }
   }
 
-  def getSequencer = {
+  def getSequencer: Try[Sequencer] = {
     Try(MidiSystem.getSequencer(false)) match {
       case Failure(exception) => Failure(exception)
       case Success(sequencer) =>
@@ -97,7 +96,7 @@ object Player {
     }
   }
 
-  def close() =
+  def close(): Try[Unit] =
     for {
       sequencer <- getSequencer
       synth <- synth
@@ -107,7 +106,7 @@ object Player {
       println("Sequencer closed")
     }
 
-  def play(p: Playable)(implicit opt: PlayOptions) =
+  def play(p: Playable)(implicit opt: PlayOptions): Try[Sequence] =
     for {
       sequencer <- getSequencer
       sequence <- MidiSequence.fromNoteEvents(p.getNoteEvents)
@@ -119,6 +118,6 @@ object Player {
       sequence
     }
 
-  def stop() = getSequencer.map(_.stop())
+  def stop(): Try[Unit] = getSequencer.map(_.stop())
 
 }

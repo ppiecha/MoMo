@@ -14,6 +14,7 @@ object Pattern {
           case t if t =:= typeOf[Int]                     => x.toInt
           case t if t =:= typeOf[Long]                    => x.toLong
           case t if t =:= typeOf[MidiValue]               => MidiValue(x.toInt)
+          case t if t =:= typeOf[IntValue]                => IntValue(x.toInt)
           case t if t =:= typeOf[PatternValue[MidiValue]] => SingleValue(MidiValue(x.toInt))
           case t if t =:= typeOf[PatternValue[IntValue]]  => SingleValue(IntValue(x.toInt))
         }
@@ -23,6 +24,7 @@ object Pattern {
           case t if t =:= typeOf[Int]                     => x.toInt
           case t if t =:= typeOf[Long]                    => x.toLong
           case t if t =:= typeOf[MidiValue]               => MidiValue(x.toInt)
+          case t if t =:= typeOf[IntValue]                => IntValue(x.toInt)
           case t if t =:= typeOf[PatternValue[MidiValue]] => SingleValue(MidiValue(x.toInt))
           case t if t =:= typeOf[PatternValue[IntValue]]  => SingleValue(IntValue(x.toInt))
         }
@@ -32,6 +34,7 @@ object Pattern {
           case t if t =:= typeOf[Int]                     => x.toInt
           case t if t =:= typeOf[Long]                    => x.toLong
           case t if t =:= typeOf[MidiValue]               => MidiValue(x.toInt)
+          case t if t =:= typeOf[IntValue]                => IntValue(x.toInt)
           case t if t =:= typeOf[PatternValue[MidiValue]] => SingleValue(MidiValue(x.toInt))
           case t if t =:= typeOf[PatternValue[IntValue]]  => SingleValue(IntValue(x.toInt))
         }
@@ -39,7 +42,7 @@ object Pattern {
         typeOf[A] match {
           case t if t =:= typeOf[PatternValue[MidiValue]] =>
             x match {
-              case Seq() => Chord(Seq())
+              case Seq() => Chord[MidiValue](Seq())
               case Seq(head, tail @ _*) =>
                 Chord(castToNumber[MidiValue](head) +: castToNumber[PatternValue[MidiValue]](tail).toSeq)
             }

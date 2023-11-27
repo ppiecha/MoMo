@@ -7,7 +7,7 @@ package object types {
   val DEFAULT_PPQ = 480
   val DEFAULT_LENGTH_LIMIT = 600
 
-  type Events = Try[Iterator[Event]]
+  type Events[A] = Try[Iterator[A]]
   type InterpreterTree = scala.reflect.runtime.universe.Tree
 
   trait Constrained[A] { def constraint(value: A): Boolean }
@@ -19,7 +19,7 @@ package object types {
 
   trait Channel {
     def channel: Int
-    def validateChannel =
+    def validateChannel(): Unit =
       if (!((0 until 16) contains channel))
         throw new IllegalArgumentException(s"Channel $channel not in (0, 16) range")
   }
