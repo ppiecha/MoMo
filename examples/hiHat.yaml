@@ -1,0 +1,32 @@
+BPM: 120
+soundFontPath: FluidR3_GM.sf2
+tracks:
+  - name: Drums
+    channel: 9
+    bank: 0
+    instrument: 0
+    versions:
+      - name: Hi-hat
+        midiNote: (seq(Seq(42), 7) ++ (seq(Seq(rnd(Seq(42, 42, 46)))))).repeat(-1)
+        timing: seq(Seq(0)) ++ seq(Seq(8), -1)
+        duration: seq(Seq(8), -1)
+        #velocity: seq(Seq(rnd(Seq.range(80, 120))), -1)
+        velocity: seq(Seq(100, 50), -1)
+  - name: Bass
+    channel: 0
+    bank: 0
+    instrument: 33
+    versions:
+      - name: Groove
+        scale:
+          degrees: 2 3 5 7 9 10
+          rootMidiNote: 30
+        scaleNote: |
+          val p1 = seq(Seq(0, 0, 7, 0, 6, 7, 0, 0))
+          val p2 = seq(Seq(2, 2, 4, 4, 2, 0, 0, 0))
+          (p1 ++ p2).repeat(-1)
+        timing: seq(Seq(0)) ++ seq(Seq(8), -1)
+        duration: |
+          val p1 = seq(Seq(16, 0, 16, 0, 16, 16, 0, 16), -1)
+          val p2 = seq(Seq(4, 0, 16, 0, 16, 16, 0, 0), -1)
+          (p1 ++ p2).repeat(-1)

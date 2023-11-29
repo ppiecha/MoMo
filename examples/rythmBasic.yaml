@@ -1,0 +1,37 @@
+BPM: 120
+soundFontPath: FluidR3_GM.sf2
+tracks:
+  - name: Drums
+    channel: 9
+    bank: 0
+    instrument: 0
+    versions:
+      - name: Claves
+        midiNote: seq(Seq(75), -1)
+        timing: seq(Seq(0)) ++ seq(Seq(4), -1)
+        duration: seq(Seq(4), -1)
+        active: false
+      - name: Hi-hat
+        midiNote: (seq(Seq(rnd(Seq(42, 42, 55)))) ++ seq(Seq(42), 6) ++ (seq(Seq(rnd(Seq(42, 42, 46)))))).repeat(-1)
+        timing: seq(Seq(0)) ++ seq(Seq(8), -1)
+        duration: seq(Seq(8), -1)
+        #velocity: seq(Seq(rnd(Seq.range(80, 120))), -1)
+        velocity: seq(Seq(100, 60), -1)
+      - name: Kick
+        midiNote: seq(Seq(35), -1)
+        timing: seq(Seq(0)) ++ seq(Seq(8), -1)
+        duration: seq(Seq(4, 0, 0, 4, 0, 4, 0, rnd(Seq(4, 0))), -1)
+        active: true
+      - name: Snare
+        midiNote: seq(Seq(40), -1)
+        timing: (seq(Seq(8), 7) ++ seq(Seq(16, 16))).repeat(-1)
+        duration: seq(Seq(0, 8, 0, 0, 0, 8, 0, rnd(Seq(16, 0)), 0), -1)
+        active: true
+      - name: Triangle
+        midiNote: seq(Seq(80), -1)
+        timing: seq(Seq(0)) ++ seq(Seq(8), -1)
+        duration: seq(Seq(0, rnd(Seq(16, 0)), 0, 0, 0, 0, 0, 0), -1)
+      - name: Tambourine
+        midiNote: seq(Seq(54), -1)
+        timing: seq(Seq(0)) ++ seq(Seq(16), -1)
+        duration: (seq(Seq(0), 3) ++ seq(Seq(rnd(Seq(16, 0)))) ++ seq(Seq(0), 12)).repeat(-1)

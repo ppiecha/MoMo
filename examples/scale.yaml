@@ -1,5 +1,4 @@
 BPM: 120
-lengthLimitInSeconds: 10
 soundFontPath: FluidR3_GM.sf2
 tracks:
   - name: Piano
@@ -11,16 +10,7 @@ tracks:
         scale:
           degrees: 2 4 5 7 9 11
           rootMidiNote: 60
-        scaleNote: seq(Seq(0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0))
-        timing: seq(Seq(4), -1)
-        duration: seq(Seq(4), -1)
-  - name: Metronome
-    channel: 9
-    bank: 0
-    instrument: 0
-    versions:
-      - name: wood
-        startAt: 8
-        midiNote: seq(Seq(42), -1)
-        timing: seq(Seq(4), -1)
-        duration: seq(Seq(4), -1)
+        scaleNote: from(0, 1, 8) ++ from(7, -1, 8)
+        timing: seq(Seq(4), 16)
+        duration: seq(Seq(4), 16)
+

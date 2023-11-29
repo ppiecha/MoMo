@@ -96,13 +96,13 @@
                     "type": "string"
                 },
                 "startAt": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "duration": {
                     "type": "string"
                 },
                 "velocity": {
-                    "type": "null"
+                    "type": "string"
                 },
                 "active": {
                     "type": "boolean"

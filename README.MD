@@ -15,7 +15,9 @@ https://docs.oracle.com/javase/tutorial/sound/overview-MIDI.html
 - todo
 
 ### Requirements
-- todo
+- jdk >= 17
+- sbt >= 1.9.7
+
 
 ### Installation
 - todo
@@ -25,20 +27,16 @@ https://docs.oracle.com/javase/tutorial/sound/overview-MIDI.html
 todo
 ```
 
-### Testing
+### Testing (sbt)
 Non-audio tests
 ```bash
-sbt test
+test
 ```
-Audio tests
+### Code formatting (sbt)
 ```commandline
-todo
+scalafmt
 ```
-Code formatting
+### Before commit (sbt)
 ```commandline
-enable scalafmt sbt plugin
-```
-Code quality check
-```commandline
-todo
+;scalafmt ;test
 ```

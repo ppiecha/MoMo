@@ -55,4 +55,29 @@ class TestPattern extends AnyFlatSpec with Matchers {
     seq(Seq()) shouldBe empty
   }
 
+  "ser" should "return iterator with number of items from sequence" in {
+    val s = ser(Seq(1, 2, 3), 5)
+    s.take(7).toSeq shouldBe Seq(1, 2, 3, 1, 2)
+  }
+
+  "ser" should "return empty iterator for empty sequence or length set to 0" in {
+    ser(Seq()) shouldBe empty
+    ser(Seq(1), 0) shouldBe empty
+  }
+
+  "from" should "return iterator with sequence of step by step integer numbers" in {
+    val s = from(-1, 1, 3)
+    s.take(7).toSeq shouldBe Seq(-1, 0, 1)
+  }
+
+  "from" should "return iterator with sequence of step by step double numbers" in {
+    val s = from(-0.5, 0.5, 3)
+    s.take(7).toSeq shouldBe Seq(-0.5, 0, 0.5)
+  }
+
+  "from" should "return empty iterator when length is zero" in {
+    val s = from(-0.5, 0.5, 0)
+    s.take(7).toSeq shouldBe empty
+  }
+
 }

@@ -15,6 +15,9 @@ case class IntValue(value: Int) extends InputValue {
     case None        => throw new IllegalArgumentException("Scale not defined")
   }
 }
+case class FunValue(fun: () => Int) extends InputValue {
+  def toMidi(implicit scale: Option[Scale]): MidiValue = MidiValue(fun())
+}
 
 sealed trait PatternValue[+A <: InputValue] {
   def toSeq: Seq[A] = this match {

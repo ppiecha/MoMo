@@ -3,6 +3,7 @@ package core
 import types._
 
 import scala.reflect.runtime.universe._
+import scala.util.Random.shuffle
 
 object Pattern {
 
@@ -53,6 +54,16 @@ object Pattern {
                 Chord(castToNumber[IntValue](head) +: castToNumber[PatternValue[IntValue]](tail).toSeq)
             }
         }
+      case x: (() => Int) =>
+        typeOf[A] match {
+          case t if t =:= typeOf[Double]                  => x().toDouble
+          case t if t =:= typeOf[Int]                     => x()
+          case t if t =:= typeOf[Long]                    => x().toLong
+          case t if t =:= typeOf[MidiValue]               => MidiValue(x())
+          case t if t =:= typeOf[IntValue]                => IntValue(x())
+          case t if t =:= typeOf[PatternValue[MidiValue]] => SingleValue(MidiValue(x()))
+          case t if t =:= typeOf[PatternValue[IntValue]]  => SingleValue(IntValue(x()))
+        }
       case x => throw new IllegalArgumentException(s"Unsupported type ${x.getClass.getName}")
     }
     val res = casted.asInstanceOf[A]
@@ -64,7 +75,7 @@ object Pattern {
     * @param sequence
     *   sequence of values to be repeated
     * @param repeat
-    *   the number of repetitions defaults to 0. Set to -1 for Infinity
+    *   the number of repetitions defaults to 1. Set to -1 for Infinity
     * @param offset
     *   the position in sequence from which iterator starts (default 0)
     * @return
@@ -78,6 +89,56 @@ object Pattern {
       case (s, r)           => Some(s.head, (s.tail :+ s.head, r - 1))
     }
   }
+
+  /** Creates iterator which return number of items instead of the number of complete cycles
+    *
+    * @param sequence
+    *   sequence of values to be repeated
+    * @param length
+    *   the number of items to be returned. Set to -1 for Infinity
+    * @param offset
+    *   the position in sequence from which iterator starts (default 0)
+    * @return
+    *   iterator which generates sequence of values
+    */
+  def ser[A](sequence: Seq[A], length: Long = 1, offset: Int = 0): Iterator[A] = sequence match {
+    case Nil => Iterator.empty[A]
+    case _ =>
+      val (h, t) = sequence.splitAt(if (offset < 0) sequence.length + offset else offset)
+      Iterator.unfold((t ++ h, length)) {
+        case (_, l) if l == 0 => None
+        case (s, l)           => Some(s.head, (s.tail :+ s.head, l - 1))
+      }
+  }
+
+  /** Creates iterator which return number of items instead of the number of complete cycles
+    *
+    * @param start
+    *   start number (can be Double)
+    * @param step
+    *   negative or positive step of sequence
+    * @param length
+    *   the number of items to be returned. Set to -1 for Infinity
+    * @return
+    *   iterator which generates sequence of values
+    */
+  def from[A](start: A, step: A, length: Long = 1)(implicit num: Numeric[A]): Iterator[A] = {
+    Iterator.unfold[A, (A, Long)]((start, length)) {
+      case (_, l) if l == 0 => None
+      case (s, l)           => Some(s, (num.plus(s, step), l - 1))
+    }
+  }
+
+  /** Selects item from sequence randomly
+    *
+    * @param sequence
+    *   sequence to get value from
+    * @param length
+    *   the number of items to be returned. Set to -1 for Infinity
+    * @return
+    *   randomly chosen item from the sequence
+    */
+  def rnd[A](sequence: Seq[A]): () => A = () => shuffle(sequence).head
 
   /** See Iterator trait and companion object for other useful functions/generators
     * https://www.scala-lang.org/api/current/scala/collection/Iterator$.html
