@@ -152,6 +152,8 @@ object Pattern {
             val (a, b) = it.duplicate; Some((a, (b, count - 1)))
         }
         .flatten
+
+    def inf: Iterator[A] = repeat(-1)
   }
 
 }

@@ -9,7 +9,6 @@ https://docs.oracle.com/javase/tutorial/sound/overview-MIDI.html
 
 ## TO DO
 - finish readme
-- add script (sbt task?) to format code and run tests
 
 ## Features
 - todo

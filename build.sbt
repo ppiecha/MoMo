@@ -7,7 +7,6 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-compiler" % "2.13.10",
   "org.scalactic" %% "scalactic" % "3.2.16",
   "org.scalatest" %% "scalatest" % "3.2.16" % "test",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
   "ch.qos.logback" % "logback-classic" % "1.4.7",
   "io.circe" %% "circe-yaml" % "0.14.2",
   "io.circe" %% "circe-core" % "0.14.5",
@@ -15,10 +14,17 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic-extras" % "0.14.3",
   "io.circe" %% "circe-parser" % "0.14.5",
   "org.scala-lang" %% "toolkit" % "0.1.7",
+  "org.rogach" %% "scallop" % "5.0.1",
+  "org.typelevel" %% "cats-effect" % "3.5.2" withSources() withJavadoc(),
+  "org.typelevel" %% "log4cats-slf4j"   % "2.6.0"
 )
 
-//resolvers ++= Resolver.sonatypeOssRepos("snapshots")
-//resolvers ++= Resolver.sonatypeOssRepos("public")
+scalacOptions ++= Seq(
+  "-feature",
+  "-deprecation",
+  "-unchecked",
+  "-language:postfixOps"
+)
 
 lazy val root = (project in file("."))
   .settings(

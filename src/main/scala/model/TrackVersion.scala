@@ -29,13 +29,22 @@ case class TrackVersion(
     def toTick(implicit ppq: Int): Long = Utils.durToTick(d, ppq)
   }
 
+  implicit val versionName: String = name
+
   private val offset = startAt.getOrElse(0.0)
 
-  def interpretIterator[A](code: String): Events[A] =
-    for {
-      iter <- Interpreter.parseAndEval(code)
-      unboxed = iter.asInstanceOf[Iterator[A]]
-    } yield unboxed
+  def interpretIterator[A](code: String)(implicit versionName: String): Events[A] = {
+    val tryParse =
+      for {
+        iter <- Interpreter.parseAndEval(code)
+        unboxed = iter.asInstanceOf[Iterator[A]]
+      } yield unboxed
+    tryParse match {
+      case Failure(exception) =>
+        throw new RuntimeException(s"Compilation failed for version $versionName \n${exception.getMessage}")
+      case Success(_) => tryParse
+    }
+  }
 
   def getTiming(implicit ppq: Int): Events[Long] = {
     interpretIterator[Double](timing)

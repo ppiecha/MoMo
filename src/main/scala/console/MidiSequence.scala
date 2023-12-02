@@ -33,7 +33,7 @@ object MidiSequence {
     makeMidiMessages(event.message).map(msg => new MidiEvent(msg, event.tick))
   }
 
-  def fromNoteEvents(noteEvents: Events[Event])(implicit opt: PlayOptions): Try[Sequence] = Try {
+  def fromNoteEvents(noteEvents: Events[Event])(implicit opt: PlayOptions): Sequence = {
     val sequence = new Sequence(Sequence.PPQ, opt.PPQ, 1)
     noteEvents match {
       case Failure(exception) => throw exception

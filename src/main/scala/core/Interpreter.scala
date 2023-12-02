@@ -1,13 +1,10 @@
 package core
 
-import com.typesafe.scalalogging.Logger
 import types._
 
 import scala.util.Try
 
 object Interpreter {
-
-  private val logger = Logger(getClass.getName)
 
   private val toolbox = locally {
     import scala.tools.reflect.ToolBox
@@ -21,7 +18,6 @@ object Interpreter {
   def eval(tree: InterpreterTree) = Try(toolbox.eval(tree))
 
   def parseAndEval(code: String): Try[Any] = {
-    logger.info(s"Parsing and evaluating $code")
     for {
       parsed <- parse(code)
       value <- eval(parsed)

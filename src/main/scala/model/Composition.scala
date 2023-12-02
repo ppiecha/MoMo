@@ -8,6 +8,7 @@ case class Composition(
     name: Option[String],
     BPM: Int,
     lengthLimitInSeconds: Option[Double],
+    midiFilePath: Option[String],
     soundFontPath: Option[String],
     tracks: List[Track],
     startAt: Option[Double], //todo

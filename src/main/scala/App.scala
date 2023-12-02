@@ -1,36 +1,26 @@
-import com.typesafe.scalalogging.Logger
-import console.Player
-import core.{IO, Yaml}
-import types.PlayOptions
+import cats.effect._
+import model.AppState
+import cats.effect.std.Console
+import console.Command.processCommand
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-import scala.util.{Failure, Success, Try}
+object App extends IOApp {
 
-object App extends App {
+  implicit def logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
-  private val logger = Logger(getClass.getName)
+  private def loop(state: IO[AppState]): IO[ExitCode] =
+    for {
+      state <- processCommand(state)
+      _ <- Console[IO].print("> ")
+      command <- Console[IO].readLine
+      args = if (command.isBlank) Nil else command.split(' ').toList
+      code <- if (command.toLowerCase != "q") {
+        loop(IO(state.copy(args = args)))
+      } else
+        IO(ExitCode.Success)
+    } yield code
 
-  private def getCompositionName(a: Array[String]) = Try(a(0))
+  override def run(args: List[String]): IO[ExitCode] = loop(IO.pure(AppState(args)))
 
-  private val status = for {
-    fileName <- getCompositionName(args)
-    yaml <- IO.readFile(fileName)
-    composition <- Yaml.mapYaml(yaml)
-    _ <- Player.reloadSoundBank(composition.soundFontPath)(Player.synth)
-    sequence <- Player.play(composition)(PlayOptions(composition.resolution, composition.BPM, composition.lengthLimit))
-  } yield sequence
-
-  status match {
-    case Failure(exception) => throw exception
-    case Success(_)         => ()
-  }
-
-  //Player.synth.map(s => s.getLoadedInstruments.foreach(println))
-
-  var command = ""
-  while (command.toLowerCase != "q") {
-    print("> ")
-    command = scala.io.StdIn.readLine()
-  }
-  Player.close()
-  System.exit(0)
 }

@@ -1,123 +1,136 @@
 package console
 
-import com.typesafe.scalalogging.Logger
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import types._
 
-import java.io.File
 import javax.sound.midi._
-import scala.util.{Failure, Success, Try}
+import cats.effect._
+
+import scala.concurrent.duration.DurationInt
 
 object Player {
 
-  private val logger = Logger(getClass.getName)
+  implicit def logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   private var soundPath: Option[String] = None
 
-  private type Synth = Try[Synthesizer]
+  type StopEffect = Option[Sequencer => Unit]
 
-  implicit val synth: Synth = Try {
-    val synth = MidiSystem.getSynthesizer
-    if (!synth.isOpen)
-      synth.open()
-    synth
-  }
+  //private type Synth = Synthesizer
 
-  case class SoundFont(pathName: Option[String])(implicit synth: Synth) {
-    def getSoundBank: Try[Option[Soundbank]] = pathName match {
-      case Some(pathName) =>
-        val defaultSoundFont = os.pwd / "soundfonts" / pathName
-        val filePath = if (os.exists(defaultSoundFont)) defaultSoundFont.toString() else pathName
-        Try(MidiSystem.getSoundbank(new File(filePath))) match {
-          case Failure(exception) => Failure(exception)
-          case Success(soundBank) =>
-            synth.map(s =>
-              s.isSoundbankSupported(soundBank) match {
-                case true  => Some(soundBank)
-                case false => throw new IllegalArgumentException(s"Soundfont not supported $pathName")
-            })
-        }
-      case None =>
-        synth match {
-          case Failure(exception) => Failure(exception)
-          case Success(synth)     => Success(Option(synth.getDefaultSoundbank))
-        }
+//
+//  val s = for {
+//    synth <- synth
+//  } yield synth
+
+//  implicit val synth: Synth = {
+//    val s = MidiSystem.getSynthesizer
+//    s.open()
+//    println("synth " + s.toString)
+//    s
+//  }
+
+//    for {
+//    synthesizer <- IO(MidiSystem.getSynthesizer)
+//    _ <- logger.info("synthesizer " + synthesizer.toString)
+//    _ <- IO(synthesizer.open())
+//  } yield synthesizer
+
+//  val sequencer = {
+//    val sequencer = MidiSystem.getSequencer(false)
+//    // s <- synth
+//    // _ <- IO(sequencer.getTransmitter.setReceiver(synth.getReceiver))
+//    // _ <- IO(sequencer.open())
+//    sequencer.getTransmitter.setReceiver(synth.getReceiver)
+//    sequencer.open()
+//    println("sequencer " + sequencer.toString)
+//    sequencer
+//  }
+
+  def synthesizer(): Resource[IO, Synthesizer] =
+    Resource.make(IO.blocking(MidiSystem.getSynthesizer)) { s =>
+      IO.blocking(s.close()).handleError(_ => IO.unit)
     }
-  }
 
-  def reloadSoundBank(pathName: Option[String])(implicit synth: Synth): Synth = {
-    if (pathName.isEmpty || pathName == soundPath) {
-      logger.warn(s"Soundbank reload discarded. Soundpath $soundPath")
-      synth
-    } else
-      synth match {
-        case Failure(exception) => Failure(exception)
-        case Success(synthesizer) =>
-          (SoundFont(pathName).getSoundBank, SoundFont(soundPath).getSoundBank) match {
-            case (Failure(exception), _) => Failure(exception)
-            case (_, Failure(exception)) => Failure(exception)
-            case (Success(next), Success(prev)) =>
-              next match {
-                case None => synth
-                case Some(soundBank) =>
-                  if (prev.nonEmpty)
-                    synthesizer.unloadAllInstruments(prev.get)
-                  if (synthesizer.loadAllInstruments(soundBank)) {
-                    soundPath = pathName
-                    logger.info(s"Soundbank ${soundBank.getName}")
-                  }
-                  synth
-              }
-          }
+  def sequencer(): Resource[IO, Sequencer] =
+    Resource.make(IO.blocking(MidiSystem.getSequencer(false))) { s =>
+      IO.blocking(s.close()).handleError(_ => IO.unit)
+    }
+
+  def synthSequencer(): Resource[IO, (Synthesizer, Sequencer)] =
+    for {
+      synth <- synthesizer()
+      seq <- sequencer()
+    } yield (synth, seq)
+
+  def play(p: Playable)(implicit opt: PlayOptions): IO[Unit] =
+    synthSequencer()
+      .use {
+        case (synth, sequencer) =>
+          for {
+            _ <- logger.info(s"synthSequencer ${synth.toString} ${sequencer.toString}")
+            _ <- IO.blocking(synth.open())
+            _ <- IO.blocking(sequencer.getTransmitter.setReceiver(synth.getReceiver))
+            _ <- IO.blocking(sequencer.open())
+            _ <- IO.blocking(sequencer.setSequence(MidiSequence.fromNoteEvents(p.getNoteEvents)))
+            _ <- IO.blocking(sequencer.setTempoInBPM(opt.BPM.toFloat))
+            _ <- IO.blocking(sequencer.start())
+            _ <- logger.info("playing")
+            //_ <- IO.sleep(5 second)
+            _ <- waitWhilePlaying(sequencer)
+            _ <- logger.info("stopped playing")
+          } yield ()
       }
-  }
+      .handleErrorWith(e => logger.error(e.getMessage))
 
-  def getSequencer: Try[Sequencer] = {
-    Try(MidiSystem.getSequencer(false)) match {
-      case Failure(exception) => Failure(exception)
-      case Success(sequencer) =>
-        synth match {
-          case Failure(exception) => Failure(exception)
-          case Success(synth) =>
-            sequencer.getTransmitter.setReceiver(synth.getReceiver)
-            sequencer.addControllerEventListener(
-              (event: ShortMessage) =>
-                logger.info(
-                  s"Controller Event Listener. " +
-                    s"Channel ${event.getChannel} " +
-                    s"command ${event.getCommand} " +
-                    s"data1 ${event.getData1} " +
-                    s"data2 ${event.getData1}"
-              ),
-              Array.range(0, 128)
-            )
-            sequencer.addMetaEventListener((meta: MetaMessage) => if (meta.getType == 0x2f) sequencer.close())
-            Success(sequencer)
-        }
-    }
-  }
-
-  def close(): Try[Unit] =
+  private def waitWhilePlaying(sequencer: Sequencer): IO[Unit] =
     for {
-      sequencer <- getSequencer
-      synth <- synth
-    } yield {
-      sequencer.close()
-      synth.close()
-      println("Sequencer closed")
-    }
+      _ <- IO.sleep(100 millisecond)
+      _ <- if (sequencer.isRunning) waitWhilePlaying(sequencer) else IO.unit
+    } yield ()
 
-  def play(p: Playable)(implicit opt: PlayOptions): Try[Sequence] =
-    for {
-      sequencer <- getSequencer
-      sequence <- MidiSequence.fromNoteEvents(p.getNoteEvents)
-    } yield {
-      sequencer.open()
-      sequencer.setSequence(sequence)
-      sequencer.setTempoInBPM(opt.BPM)
-      sequencer.start()
-      sequence
-    }
+  //  case class SoundFont(pathName: Option[String])(implicit synth: Synth) {
+  //    def getSoundBank(): IO[Option[Soundbank]] = pathName match {
+  //      case Some(pathName) =>
+  //        val defaultSoundFont = os.pwd / "soundfonts" / pathName
+  //        for {
+  //          filePath <- IO(if (os.exists(defaultSoundFont)) defaultSoundFont.toString() else pathName)
+  //          soundBank <- IO(MidiSystem.getSoundbank(new File(filePath)))
+  //          s <- synth
+  //        } yield
+  //          if (s.isSoundbankSupported(soundBank)) Some(soundBank)
+  //          else throw new IllegalArgumentException(s"Soundfont not supported $pathName")
+  //      case None => synth.map(s => Option(s.getDefaultSoundbank))
+  //    }
+  //  }
 
-  def stop(): Try[Unit] = getSequencer.map(_.stop())
+  //  def reloadSoundBank(pathName: Option[String])(implicit synth: Synth): Synth =
+  //    if (pathName.isEmpty || pathName == soundPath) {
+  //      for {
+  //        _ <- logger.warn(s"SoundBank reload discarded. Soundpath $soundPath")
+  //        s <- synth
+  //      } yield s
+  //    } else {
+  //      for {
+  //        s <- synth
+  //        nextBank <- SoundFont(pathName).getSoundBank()
+  //        _ <- logger.info("after  nextBank")
+  //        prevBank <- SoundFont(soundPath).getSoundBank()
+  //        _ <- logger.info("after  prevBank")
+  //        _ <- IO {
+  //          nextBank match {
+  //            case None => s
+  //            case Some(soundBank) =>
+  //              if (prevBank.nonEmpty)
+  //                s.unloadAllInstruments(prevBank.get)
+  //              if (s.loadAllInstruments(soundBank)) {
+  //                soundPath = pathName
+  //                logger.info(s"SoundBank ${soundBank.getName}")
+  //              }
+  //          }
+  //        }
+  //      } yield s
+  //    }
 
 }

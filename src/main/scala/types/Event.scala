@@ -12,7 +12,7 @@ case class ProgramEvent(message: ProgramMessage, tick: Long) extends Event
 case class ControlEvent(message: ControlMessage, tick: Long) extends Event
 
 sealed trait Message extends Channel {
-  validateChannel
+  validateChannel()
 }
 case class NoteMessage(command: MidiValue, channel: Int, note: MidiValue, velocity: MidiValue) extends Message
 case class ProgramMessage(channel: Int, bank: MidiValue, program: MidiValue) extends Message

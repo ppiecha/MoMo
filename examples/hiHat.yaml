@@ -24,9 +24,9 @@ tracks:
         scaleNote: |
           val p1 = seq(Seq(0, 0, 7, 0, 6, 7, 0, 0))
           val p2 = seq(Seq(2, 2, 4, 4, 2, 0, 0, 0))
-          (p1 ++ p2).repeat(-1)
+          (p1 ++ p2).inf
         timing: seq(Seq(0)) ++ seq(Seq(8), -1)
         duration: |
           val p1 = seq(Seq(16, 0, 16, 0, 16, 16, 0, 16), -1)
           val p2 = seq(Seq(4, 0, 16, 0, 16, 16, 0, 0), -1)
-          (p1 ++ p2).repeat(-1)
+          (p1 ++ p2).inf
