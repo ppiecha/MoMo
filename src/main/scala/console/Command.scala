@@ -35,9 +35,9 @@ object Command {
           options.subcommand match {
             case Some(options.play) => stop(player); ReadingComposition(cf)
             case Some(options.stop) => stop(player); Listening(None, cf)
-            case cmd                => throw new IllegalArgumentException(s"Unknown subcommand ${cmd.toString}")
+            case cmd                => throw ArgError(s"Unknown subcommand ${cmd.toString}")
           }
-        case options => throw new IllegalArgumentException(s"Unknown command $options")
+        case options => throw ArgError(s"Unknown command $options")
       }
     }
 

@@ -1,5 +1,6 @@
 package model
 
+import core.Exception.ArgError
 import core.Pattern.castToNumber
 import core.Utils.tickToSecond
 import core.{Interpreter, Utils}
@@ -59,7 +60,7 @@ case class TrackVersion(
   }
 
   def getNote[A <: InputValue](pattern: String)(implicit tag: TypeTag[A]): Events[PatternValue[InputValue]] = {
-    if (pattern.isBlank) throw new IllegalArgumentException("Note sequence is empty")
+    if (pattern.isBlank) throw ArgError("Note sequence is empty")
     interpretIterator[PatternValue[A]](pattern)
       .map(iter =>
         typeOf[A] match {
@@ -69,13 +70,11 @@ case class TrackVersion(
   }
 
   def getNote: Events[PatternValue[InputValue]] = (scaleNote, midiNote) match {
-    case (None, None)            => Failure(new IllegalArgumentException("Notes not defined"))
+    case (None, None)            => Failure(ArgError("Notes not defined"))
     case (Some(scaleNote), None) => getNote[IntValue](scaleNote)
     case (None, Some(midiNote))  => getNote[MidiValue](midiNote)
     case (Some(_), Some(_)) =>
-      Failure(
-        new IllegalArgumentException("Either scaleNote or midiNote can be defined at the same time")
-      )
+      Failure(ArgError("Either scaleNote or midiNote must be defined at the same time"))
   }
 
   def getDuration(ppq: Int): Events[Long] =

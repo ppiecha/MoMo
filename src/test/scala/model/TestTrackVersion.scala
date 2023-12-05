@@ -1,5 +1,6 @@
 package model
 
+import core.Exception.ArgError
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.TryValues._
@@ -82,7 +83,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
       scale = None,
       scaleNote = None
     )
-    assertThrows[IllegalArgumentException] {
+    assertThrows[ArgError] {
       trackVersion.getNote
     }
   }
@@ -97,7 +98,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
       scale = None,
       scaleNote = Option("")
     )
-    assertThrows[IllegalArgumentException] {
+    assertThrows[ArgError] {
       trackVersion.getNote.get.next()
     }
   }
@@ -148,7 +149,7 @@ class TestTrackVersion extends AnyFlatSpec with Matchers {
       scale = None,
       scaleNote = Option("seq(Seq(Seq(-1, 7)))")
     )
-    assertThrows[IllegalArgumentException] {
+    assertThrows[ArgError] {
       trackVersion.getNoteEvents.get.next()
     }
   }

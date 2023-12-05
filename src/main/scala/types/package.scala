@@ -1,3 +1,5 @@
+import core.Exception.ArgError
+
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -21,7 +23,7 @@ package object types {
     def channel: Int
     def validateChannel(): Unit =
       if (!((0 until 16) contains channel))
-        throw new IllegalArgumentException(s"Channel $channel not in (0, 16) range")
+        throw ArgError(s"Channel $channel not in (0, 16) range")
   }
 
   implicit def intToMidi(int: Int): MidiValue = MidiValue(int)

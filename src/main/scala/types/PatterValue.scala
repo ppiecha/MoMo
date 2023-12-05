@@ -1,5 +1,7 @@
 package types
 
+import core.Exception.ArgError
+
 /** MIDI & Pattern values
   */
 sealed trait InputValue {
@@ -12,7 +14,7 @@ case class MidiValue(value: Int)(implicit c: MidiConstraint) extends InputValue 
 case class IntValue(value: Int) extends InputValue {
   def toMidi(implicit scale: Option[Scale]): MidiValue = scale match {
     case Some(scale) => scale.toMidiValue(value)
-    case None        => throw new IllegalArgumentException("Scale not defined")
+    case None        => throw ArgError("Scale not defined")
   }
 }
 case class FunValue(fun: () => Int) extends InputValue {

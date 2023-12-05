@@ -1,5 +1,6 @@
 package core
 
+import core.Exception.ArgError
 import types._
 
 import scala.reflect.runtime.universe._
@@ -64,7 +65,7 @@ object Pattern {
           case t if t =:= typeOf[PatternValue[MidiValue]] => SingleValue(MidiValue(x()))
           case t if t =:= typeOf[PatternValue[IntValue]]  => SingleValue(IntValue(x()))
         }
-      case x => throw new IllegalArgumentException(s"Unsupported type ${x.getClass.getName}")
+      case x => throw ArgError(s"Unsupported type ${x.getClass.getName}")
     }
     val res = casted.asInstanceOf[A]
     res
