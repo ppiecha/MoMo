@@ -17,7 +17,7 @@ object Player {
 
   type StopEffect = Option[Sequencer => Unit]
 
-  //private type Synth = Synthesizer
+  // private type Synth = Synthesizer
 
 //
 //  val s = for {
@@ -49,46 +49,68 @@ object Player {
 //  }
 
   def synthesizer(): Resource[IO, Synthesizer] =
-    Resource.make(IO.blocking(MidiSystem.getSynthesizer)) { s =>
+    Resource.make {
+      for {
+        synth <- IO(MidiSystem.getSynthesizer)
+        _ <- IO(synth.open())
+      } yield synth
+    } { s =>
       IO.blocking(s.close()).handleError(_ => IO.unit)
     }
 
-  def sequencer(): Resource[IO, Sequencer] =
-    Resource.make(IO.blocking(MidiSystem.getSequencer(false))) { s =>
-      IO.blocking(s.close()).handleError(_ => IO.unit)
+  def sequencer(synth: Synthesizer): Resource[IO, Sequencer] =
+    Resource.make {
+      for {
+        seq <- IO.blocking(MidiSystem.getSequencer(false))
+        _ <- IO(seq.getTransmitter.setReceiver(synth.getReceiver))
+        _ <- IO(seq.open())
+      } yield seq
+    } { s =>
+      (for {
+        _ <- IO(s.close())
+        _ <- logger.info("sequencer closed")
+      } yield ()).handleError(_ => IO.unit)
     }
 
   def synthSequencer(): Resource[IO, (Synthesizer, Sequencer)] =
     for {
       synth <- synthesizer()
-      seq <- sequencer()
+      seq <- sequencer(synth)
     } yield (synth, seq)
 
-  def play(p: Playable)(implicit opt: PlayOptions): IO[Unit] =
-    synthSequencer()
-      .use {
-        case (synth, sequencer) =>
-          for {
-            _ <- logger.info(s"synthSequencer ${synth.toString} ${sequencer.toString}")
-            _ <- IO.blocking(synth.open())
-            _ <- IO.blocking(sequencer.getTransmitter.setReceiver(synth.getReceiver))
-            _ <- IO.blocking(sequencer.open())
-            _ <- IO.blocking(sequencer.setSequence(MidiSequence.fromNoteEvents(p.getNoteEvents)))
-            _ <- IO.blocking(sequencer.setTempoInBPM(opt.BPM.toFloat))
-            _ <- IO.blocking(sequencer.start())
-            _ <- logger.info("playing")
-            //_ <- IO.sleep(5 second)
-            _ <- waitWhilePlaying(sequencer)
-            _ <- logger.info("stopped playing")
-          } yield ()
-      }
-      .handleErrorWith(e => logger.error(e.getMessage))
+//  def play(p: Playable)(implicit opt: PlayOptions): IO[Unit] =
+//    synthSequencer()
+//      .use { case (synth, sequencer) =>
+//        for {
+//          _ <- logger.info(s"synthSequencer ${synth.toString} ${sequencer.toString}")
+//          _ <- IO(sequencer.setSequence(MidiSequence.fromNoteEvents(p.getNoteEvents)))
+//          _ <- IO(sequencer.setTempoInBPM(opt.BPM.toFloat))
+//          _ <- IO(sequencer.start())
+//          _ <- logger.info("playing")
+//          _ <- IO.interruptibleMany(5 second)
+//          // + cancel
+//          _ <- waitWhilePlaying(sequencer)
+//          _ <- logger.info("stopped playing")
+//        } yield ()
+//      }
+//      .handleErrorWith(e => logger.error(e.getMessage))
 
-  private def waitWhilePlaying(sequencer: Sequencer): IO[Unit] =
+  private def waitWhilePlaying(sequencer: Sequencer): IO[Unit] = {
     for {
       _ <- IO.sleep(100 millisecond)
       _ <- if (sequencer.isRunning) waitWhilePlaying(sequencer) else IO.unit
     } yield ()
+  }
+
+  def play(sequence: Sequence, playOptions: PlayOptions): IO[Unit] =
+    synthSequencer()
+      .use {
+        case (synth, sequencer) =>
+          sequencer.setSequence(sequence)
+          sequencer.setTempoInBPM(playOptions.BPM.toFloat)
+          sequencer.start()
+          waitWhilePlaying(sequencer)
+      }
 
   //  case class SoundFont(pathName: Option[String])(implicit synth: Synth) {
   //    def getSoundBank(): IO[Option[Soundbank]] = pathName match {
