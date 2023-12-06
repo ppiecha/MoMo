@@ -15,39 +15,6 @@ object Player {
 
   private var soundPath: Option[String] = None
 
-  type StopEffect = Option[Sequencer => Unit]
-
-  // private type Synth = Synthesizer
-
-//
-//  val s = for {
-//    synth <- synth
-//  } yield synth
-
-//  implicit val synth: Synth = {
-//    val s = MidiSystem.getSynthesizer
-//    s.open()
-//    println("synth " + s.toString)
-//    s
-//  }
-
-//    for {
-//    synthesizer <- IO(MidiSystem.getSynthesizer)
-//    _ <- logger.info("synthesizer " + synthesizer.toString)
-//    _ <- IO(synthesizer.open())
-//  } yield synthesizer
-
-//  val sequencer = {
-//    val sequencer = MidiSystem.getSequencer(false)
-//    // s <- synth
-//    // _ <- IO(sequencer.getTransmitter.setReceiver(synth.getReceiver))
-//    // _ <- IO(sequencer.open())
-//    sequencer.getTransmitter.setReceiver(synth.getReceiver)
-//    sequencer.open()
-//    println("sequencer " + sequencer.toString)
-//    sequencer
-//  }
-
   def synthesizer(): Resource[IO, Synthesizer] =
     Resource.make {
       for {
@@ -78,23 +45,6 @@ object Player {
       seq <- sequencer(synth)
     } yield (synth, seq)
 
-//  def play(p: Playable)(implicit opt: PlayOptions): IO[Unit] =
-//    synthSequencer()
-//      .use { case (synth, sequencer) =>
-//        for {
-//          _ <- logger.info(s"synthSequencer ${synth.toString} ${sequencer.toString}")
-//          _ <- IO(sequencer.setSequence(MidiSequence.fromNoteEvents(p.getNoteEvents)))
-//          _ <- IO(sequencer.setTempoInBPM(opt.BPM.toFloat))
-//          _ <- IO(sequencer.start())
-//          _ <- logger.info("playing")
-//          _ <- IO.interruptibleMany(5 second)
-//          // + cancel
-//          _ <- waitWhilePlaying(sequencer)
-//          _ <- logger.info("stopped playing")
-//        } yield ()
-//      }
-//      .handleErrorWith(e => logger.error(e.getMessage))
-
   private def waitWhilePlaying(sequencer: Sequencer): IO[Unit] = {
     for {
       _ <- IO.sleep(100 millisecond)
@@ -111,7 +61,6 @@ object Player {
           sequencer.start()
           waitWhilePlaying(sequencer)
       }
-
   //  case class SoundFont(pathName: Option[String])(implicit synth: Synth) {
   //    def getSoundBank(): IO[Option[Soundbank]] = pathName match {
   //      case Some(pathName) =>

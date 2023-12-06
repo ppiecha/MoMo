@@ -31,6 +31,8 @@ case class Composition(
     Events.mergeEvents(compositionEvents)
   }
 
+  def playOptions(): PlayOptions = PlayOptions(resolution, BPM, lengthLimit)
+
   // todo - validate uniqueness of track and version names
   def validate(): Try[Boolean] = ???
 

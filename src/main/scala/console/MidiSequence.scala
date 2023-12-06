@@ -4,7 +4,7 @@ import types._
 
 import javax.sound.midi._
 import javax.sound.midi.ShortMessage._
-import scala.util.{Failure, Success, Try}
+import scala.util._
 
 object MidiSequence {
 
