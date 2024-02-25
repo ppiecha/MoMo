@@ -2,6 +2,7 @@ package model
 
 import types._
 
+import java.io.File
 import scala.util.Try
 
 case class Composition(
@@ -11,7 +12,7 @@ case class Composition(
     midiFilePath: Option[String],
     soundFontPath: Option[String],
     tracks: List[Track],
-    startAt: Option[Double], //todo
+    startAt: Option[Double], // todo
     author: Option[String],
     description: Option[String],
     comment: Option[String],
@@ -20,9 +21,9 @@ case class Composition(
   require(BPM >= 0, s"BPM $BPM should not be negative")
   require(PPQ.getOrElse(0) >= 0, s"PPQ $PPQ should not be negative")
 
-  val resolution: Int = if (PPQ.isEmpty) DEFAULT_PPQ else PPQ.get
+  private val resolution: Int = if (PPQ.isEmpty) DEFAULT_PPQ else PPQ.get
 
-  val lengthLimit: Double = if (lengthLimitInSeconds.isEmpty) DEFAULT_LENGTH_LIMIT else lengthLimitInSeconds.get
+  private val lengthLimit: Double = if (lengthLimitInSeconds.isEmpty) DEFAULT_LENGTH_LIMIT else lengthLimitInSeconds.get
 
   val offset: Double = if (startAt.isEmpty) 0.0 else startAt.get
 
@@ -31,7 +32,7 @@ case class Composition(
     Events.mergeEvents(compositionEvents)
   }
 
-  def playOptions(): PlayOptions = PlayOptions(resolution, BPM, lengthLimit)
+  def playOptions(): PlayOptions = PlayOptions(soundFontPath.map(new File(_)), resolution, BPM, lengthLimit)
 
   // todo - validate uniqueness of track and version names
   def validate(): Try[Boolean] = ???

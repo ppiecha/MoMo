@@ -6,33 +6,58 @@ import console.AppState._
 import core.Exception.ArgError
 import core.{FileIO, Yaml}
 import model.Composition
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import types._
+import scopt.{OEffect, OParser}
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.sound.midi.Sequence
 
-case class AppState(args: Args, file: File, playback: Playback)
+case class AppState(yamlFile: YamlFile, soundFile: SoundFile, playback: Playback)
 
 object AppState {
 
-  implicit def logger: Logger[IO] = Slf4jLogger.getLogger[IO]
+  private type Args = List[String]
+  private type YamlFile = Option[java.io.File]
+  private type SoundFile = Option[java.io.File]
+  private type Playback = Option[FiberIO[Unit]]
+  private type Options = (Option[Config], List[OEffect])
 
-  // type CF = Option[CompositionFile]
-  type Args = List[String]
-  type File = Option[String]
-  type Playback = Option[FiberIO[Unit]]
-
-  def getCmdOptions(args: Args): IO[CmdOptions] = {
-    implicit def logger: Logger[IO] = Slf4jLogger.getLogger[IO]
-    IO(new CmdOptions(args)).handleErrorWith(e => logger.error(e.getMessage).map(_ => new CmdOptions(Nil)))
+  private def printEffects(effects: List[OEffect]): IO[Unit] = effects match {
+    case ::(head, next) =>
+      val e = head match {
+        case OEffect.DisplayToOut(msg)  => Console[IO].println(msg)
+        case OEffect.DisplayToErr(msg)  => Console[IO].println(msg)
+        case OEffect.ReportError(msg)   => Console[IO].println("Error: " + msg)
+        case OEffect.ReportWarning(msg) => Console[IO].println("Warning: " + msg)
+        case OEffect.Terminate(_)       => IO.unit
+      }
+      e >> printEffects(next)
+    case Nil => IO.unit
   }
 
-  def getFile(cmd: CmdOptions, state: AppState, isFileRequired: Boolean): IO[File] = cmd.composition.toOption match {
-    case None =>
-      if (isFileRequired) IO.raiseError(ArgError("Path to composition file is required"))
-      else IO(state.file)
-    case file => IO(file)
+  def log(message: String, includeTime: Boolean = true): IO[Unit] = {
+    val time = DateTimeFormatter.ofPattern("HH:mm:ss:SSS").format(LocalDateTime.now) + " "
+    val msg = s"${if (includeTime) time else ""}$message"
+    Console[IO].println(msg)
+  }
+
+  def handler[A](default: A): Throwable => IO[A] = { e: Throwable =>
+    log(e.getMessage).map(_ => default)
+  }
+
+  private def getInput(state: AppState): IO[String] = {
+    val fileName = state.yamlFile match {
+      case Some(path) => " [" + path.getName + "] "
+      case None       => ""
+    }
+    val prefix = s"MoMo$fileName> "
+    Console[IO].print(prefix) >> Console[IO].readLine
+  }
+
+  private def getYamlFile(options: Options, state: AppState): IO[YamlFile] = options match {
+    case (_, effects) if effects.nonEmpty => IO.pure(None)
+    case (config, _)                      => IO.pure(config.flatMap(c => c.yamlFile).orElse(state.yamlFile))
   }
 
   private def stop(playback: Playback): IO[Unit] = playback match {
@@ -40,15 +65,14 @@ object AppState {
       for {
         _ <- playback.cancel
         _ <- playback.join
-        _ <- logger.info("playback cancelled")
       } yield ()
-    case None => IO.unit >> logger.info("nothing to cancel")
+    case None => IO.unit
   }
 
-  private def readComposition(file: File): IO[Composition] = file match {
+  private def readComposition(file: YamlFile): IO[Composition] = file match {
     case Some(fileName) =>
       for {
-        yaml <- FileIO.asString(fileName)
+        yaml <- FileIO.asString(fileName.getPath)
         composition <- Yaml.mapYaml(yaml)
       } yield composition
     case None => IO.raiseError(ArgError("Composition file not defined"))
@@ -57,41 +81,53 @@ object AppState {
   private def parseComposition(composition: Composition, playOptions: PlayOptions): IO[Sequence] =
     IO(MidiSequence.fromNoteEvents(composition.getNoteEvents(playOptions))(playOptions))
 
-  private def playSequence(sequence: Sequence, playOptions: PlayOptions): IO[Playback] =
+  private def playSequence(sequence: Sequence, playOptions: PlayOptions): IO[Playback] = //for {
     for (fib <- Player.play(sequence, playOptions).start) yield Some(fib)
+    //_ <- log(s"all loaded, playing ${Option(pair)}")
+    //playback <- Player.waitWhilePlaying(pair._2).start.map(Option(_))
+  //} yield playback
 
-  private def play(state: AppState): IO[Playback] =
+  private def play(state: AppState, file: YamlFile): IO[Playback] =
     for {
       _ <- stop(state.playback)
-      composition <- readComposition(state.file)
+      composition <- readComposition(file)
+      _ <- log(s"before parse")
       sequence <- parseComposition(composition, composition.playOptions())
+      _ <- log("after parse")
       playback <- playSequence(sequence, composition.playOptions())
     } yield playback
 
-  def getPlayback(cmd: CmdOptions, state: AppState): IO[Playback] = cmd.subcommand match {
-    case Some(cmd.play) => play(state)
-    case Some(cmd.stop) => stop(state.playback) >> IO.pure(None)
-    case _              => logger.info("command ignored") >> IO.pure(None)
-    // case cmd => throw ArgError(s"Unknown subcommand ${cmd.toString}")
+  private def getPlayback(options: Options, state: AppState, file: YamlFile): IO[Playback] = options match {
+    case (_, effects) if effects.nonEmpty => IO.pure(None)
+    case (Some(config), _) =>
+      config.action match {
+        case Play => play(state, file)
+        case Stop => stop(state.playback) >> IO.pure(None)
+        case _    => IO.pure(None)
+      }
+    case _ => IO.pure(None)
   }
 
-  def exit(command: String): Either[ExitCode, Args] = {
-    val end = command.toLowerCase == "q"
+  private def exit(command: String): Either[ExitCode, Args] = {
     val args = if (command.isBlank) Nil else command.split(' ').toList
-    if (end) Left(ExitCode.Success) else Right(args)
+    OParser.runParser(CmdOptions.parser, args, Config()) match {
+      case (Some(config), _) if config.action == Exit => Left(ExitCode.Success)
+      case _                                          => Right(args)
+    }
   }
 
-  def processState(state: IO[AppState], isFileRequired: Boolean): IO[ExitCode] =
+  def processState(args: Args, state: AppState): IO[ExitCode] =
     for {
-      state <- state
-      cmd <- getCmdOptions(state.args)
-      file <- getFile(cmd, state, isFileRequired)
-      playback <- getPlayback(cmd, state)
-      _ <- Console[IO].print("> ")
-      command <- Console[IO].readLine
+      options <- IO.pure(OParser.runParser(CmdOptions.parser, args, Config()))
+      (_, effects) = options
+      _ <- printEffects(effects)
+      yamlFile <- getYamlFile(options, state)
+      playback <- getPlayback(options, state, yamlFile).handleErrorWith(handler(None))
+      state = AppState(yamlFile, None, playback)
+      command <- getInput(state)
       code <- exit(command) match {
         case Left(code)  => IO.pure(code)
-        case Right(args) => processState(IO.pure(AppState(args, file, playback)), file.isEmpty)
+        case Right(args) => processState(args, state)
       }
     } yield code
 

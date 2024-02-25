@@ -1,5 +1,6 @@
 BPM: 120
 soundFontPath: FluidR3_GM.sf2
+lengthLimitInSeconds: 5
 tracks:
   - name: Drums
     channel: 9

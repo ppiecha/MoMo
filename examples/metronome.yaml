@@ -1,6 +1,6 @@
 BPM: 120
 lengthLimitInSeconds: 20
-soundFontPath: FluidR3_GM.sf2
+soundFontPath: soundfonts/FluidR3_GM.sf2
 tracks:
   - name: Metronome
     channel: 9
@@ -9,6 +9,6 @@ tracks:
     versions:
       - name: Claves
         #midiNote: seq(Seq(75), -1)
-        midiNote: seq(Seq(75, rnd(Seq(42, 46))), -1)
+        midiNote: seq(Seq(75), -1) # rnd(Seq(42, 46))), -1)
         timing: seq(Seq(4), 128)
         duration: seq(Seq(4), -1)

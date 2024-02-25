@@ -1,5 +1,6 @@
 import core.Exception.ArgError
 
+import java.io.File
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -11,6 +12,7 @@ package object types {
 
   type Events[A] = Try[Iterator[A]]
   type InterpreterTree = scala.reflect.runtime.universe.Tree
+  type SoundFile = Option[File]
 
   trait Constrained[A] { def constraint(value: A): Boolean }
   trait MidiConstraint extends Constrained[Int]

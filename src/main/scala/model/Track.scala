@@ -1,6 +1,7 @@
 package model
 
 import types._
+import scala.collection.parallel.CollectionConverters._
 
 case class Track(
     name: String,

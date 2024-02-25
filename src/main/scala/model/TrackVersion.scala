@@ -42,7 +42,7 @@ case class TrackVersion(
       } yield unboxed
     tryParse match {
       case Failure(exception) =>
-        throw new RuntimeException(s"Compilation failed for version $versionName \n${exception.getMessage}")
+        throw new RuntimeException(s"Version ===== $versionName ===== ${exception.getMessage}")
       case Success(_) => tryParse
     }
   }
