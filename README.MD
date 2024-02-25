@@ -2,7 +2,8 @@
 
 > Midi way to compose your own music in Scala.
 
-MIDI sequencer (console app) written in Scala.
+MIDI sequencer (console app) written in Scala.\
+Implementation using Cats Effect.
 
 Backend uses Java MIDI package \
 https://docs.oracle.com/javase/tutorial/sound/overview-MIDI.html
